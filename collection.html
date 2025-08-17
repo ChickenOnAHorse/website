@@ -1,26 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Collection</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Collection — Chicken on a Horse</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>
-    <nav class="top-nav">
-      <a href="collection.html" class="nav-link active">My Collection</a>
-      <a href="index.html" class="nav-link">Skins for Sale/Trade</a>
-      <a href="about.html" class="nav-link">About</a>
-      <button id="theme-toggle" class="theme-btn">☾</button>
-    </nav>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <nav class="top-nav" aria-label="Primary">
+        <a href="index.html" class="logo" aria-label="Home">🐔🐴</a>
+        <div class="nav-links">
+          <a href="collection.html" class="nav-link active">My Collection</a>
+          <a href="index.html" class="nav-link">Skins for Sale/Trade</a>
+          <a href="about.html" class="nav-link">About</a>
+          <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        </div>
+      </nav>
+    </div>
   </header>
 
-  <main>
+  <main id="main" class="container section">
     <h1>My Collection</h1>
-    <p>This is a placeholder page for your personal collection.</p>
+    <p class="muted">This is a placeholder page for your personal collection. We can hook this to a second sheet or a tag later.</p>
   </main>
 
-  <script src="app.js"></script>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> Chicken on a Horse</p>
+      <a href="#top" class="back-to-top">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="app.js" defer></script>
 </body>
 </html>
