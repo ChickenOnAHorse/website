@@ -94,99 +94,47 @@
     </div>
   </footer>
 
-  <script src="app.js" defer></script>
-  <script>
-    // --- Config: paths to your two images ---
-    const BLUE_SRC = 'assets/loadout-blue.png';
-    const GOLD_SRC = 'assets/loadout-gold.png';
+ <script src="app.js" defer></script>
+<script>
+  const BLUE_SRC = 'assets/loadout-blue.png';
+  const GOLD_SRC = 'assets/loadout-gold.png';
+  const BLUE_TO_GOLD_RIGHT_BAND = 0.22;
+  const GOLD_TO_BLUE_LEFT_BAND  = 0.22;
 
-    // --- Clickable band sizes (as fraction of width) ---
-    const BLUE_TO_GOLD_RIGHT_BAND = 0.22; // right 22% (blue -> gold)
-    const GOLD_TO_BLUE_LEFT_BAND  = 0.22; // left 22%  (gold -> blue)
+  const container = document.getElementById('loadout');
+  const img = document.getElementById('loadoutImg');
 
-    // Preload both for fast swaps
-    ['assets/loadout-gold.png','assets/loadout-blue.png'].forEach(src => { const i=new Image(); i.src=src; });
+  // Preload
+  [BLUE_SRC, GOLD_SRC].forEach(src => { const i = new Image(); i.src = src; });
 
-    const container = document.getElementById('loadout');
-    const img = document.getElementById('loadoutImg');
+  function swap(to) {
+    container.dataset.state = to;
+    img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
+  }
 
-    let isTransitioning = false;
+  container.addEventListener('click', (e) => {
+    const rect = container.getBoundingClientRect();
+    const xRel = (e.clientX - rect.left) / rect.width;
+    const state = container.dataset.state;
 
-    function swap(to){
-      if (isTransitioning) return;
-      const current = container.dataset.state;
-      if (to === current) return;
-      isTransitioning = true;
-
-      img.classList.add('is-fading');
-
-      // Fallback timer in case transitionend is missed
-      const failSafe = setTimeout(() => performSwap(to), 320);
-
-      // If transition ends, do the swap immediately
-      img.addEventListener('transitionend', function onOut(){
-        img.removeEventListener('transitionend', onOut);
-        clearTimeout(failSafe);
-        performSwap(to);
-      }, { once:true });
+    if (state === 'blue' && xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
+      swap('gold');
+    } else if (state === 'gold' && xRel <= GOLD_TO_BLUE_LEFT_BAND) {
+      swap('blue');
     }
+  });
 
-    function performSwap(to){
-      // Swap the src
-      img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
-      container.dataset.state = to;
-
-      // Fade back in after the image has loaded (in case of cache miss)
-      const onLoad = () => {
-        img.removeEventListener('load', onLoad);
-        requestAnimationFrame(() => {
-          img.classList.remove('is-fading');
-          // Unlock after fade-in (with a tiny fallback too)
-          const doneTimer = setTimeout(() => { isTransitioning = false; }, 320);
-          img.addEventListener('transitionend', function endIn(){
-            img.removeEventListener('transitionend', endIn);
-            clearTimeout(doneTimer);
-            isTransitioning = false;
-          }, { once:true });
-        });
-      };
-      // If already complete (from cache), fire synchronously
-      if (img.complete) onLoad(); else img.addEventListener('load', onLoad);
-    }
-
-    // Click handler attached to the container (not the <img>)
-    container.addEventListener('click', (e) => {
-      if (isTransitioning) return;
-      const rect = container.getBoundingClientRect();
-      const xRel = (e.clientX - rect.left) / rect.width; // 0..1
-      const state = container.dataset.state;
-
-      if (state === 'blue' && xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
-        swap('gold');
-      } else if (state === 'gold' && xRel <= GOLD_TO_BLUE_LEFT_BAND) {
-        swap('blue');
-      }
-    });
-
-    // Change cursor to pointer only when hovering an active band
-    container.addEventListener('mousemove', (e) => {
-      const rect = container.getBoundingClientRect();
-      const xRel = (e.clientX - rect.left) / rect.width;
-      const state = container.dataset.state;
-      const inActiveZone = (state === 'blue')
-        ? (xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND)
-        : (xRel <= GOLD_TO_BLUE_LEFT_BAND);
-      container.style.cursor = inActiveZone ? 'pointer' : 'default';
-    });
-    container.addEventListener('mouseleave', () => { container.style.cursor = 'default'; });
-
-    // Keyboard toggle (spacebar)
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        swap(container.dataset.state === 'blue' ? 'gold' : 'blue');
-      }
-    });
-  </script>
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    const xRel = (e.clientX - rect.left) / rect.width;
+    const state = container.dataset.state;
+    const inActiveZone = (state === 'blue')
+      ? (xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND)
+      : (xRel <= GOLD_TO_BLUE_LEFT_BAND);
+    container.style.cursor = inActiveZone ? 'pointer' : 'default';
+  });
+  container.addEventListener('mouseleave', () => { container.style.cursor = 'default'; });
+</script>
 </body>
 </html>
+
