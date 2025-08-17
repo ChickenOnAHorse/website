@@ -95,16 +95,17 @@
   </footer>
 
  <script src="app.js" defer></script>
+<script src="app.js" defer></script>
 <script>
   const BLUE_SRC = 'assets/loadout-blue.png';
   const GOLD_SRC = 'assets/loadout-gold.png';
   const BLUE_TO_GOLD_RIGHT_BAND = 0.22;
   const GOLD_TO_BLUE_LEFT_BAND  = 0.22;
 
-  const container = document.getElementById('loadout');
   const img = document.getElementById('loadoutImg');
+  const container = document.getElementById('loadout');
 
-  // Preload
+  // Preload images
   [BLUE_SRC, GOLD_SRC].forEach(src => { const i = new Image(); i.src = src; });
 
   function swap(to) {
@@ -112,8 +113,8 @@
     img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
   }
 
-  container.addEventListener('click', (e) => {
-    const rect = container.getBoundingClientRect();
+  img.addEventListener('click', (e) => {
+    const rect = img.getBoundingClientRect();
     const xRel = (e.clientX - rect.left) / rect.width;
     const state = container.dataset.state;
 
@@ -124,17 +125,18 @@
     }
   });
 
-  container.addEventListener('mousemove', (e) => {
-    const rect = container.getBoundingClientRect();
+  img.addEventListener('mousemove', (e) => {
+    const rect = img.getBoundingClientRect();
     const xRel = (e.clientX - rect.left) / rect.width;
     const state = container.dataset.state;
     const inActiveZone = (state === 'blue')
       ? (xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND)
       : (xRel <= GOLD_TO_BLUE_LEFT_BAND);
-    container.style.cursor = inActiveZone ? 'pointer' : 'default';
+    img.style.cursor = inActiveZone ? 'pointer' : 'default';
   });
-  container.addEventListener('mouseleave', () => { container.style.cursor = 'default'; });
+  img.addEventListener('mouseleave', () => { img.style.cursor = 'default'; });
 </script>
 </body>
 </html>
+
 
