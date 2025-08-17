@@ -22,11 +22,11 @@
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ],
     "blue": [
-      { "id": "1",  "title": "Slot 1",  "x": 33.9, "y": 7.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "2",  "title": "Slot 2",  "x": 33.9, "y": 27.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "3",  "title": "Slot 3",  "x": 33.9, "y": 45.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "4",  "title": "Slot 4",  "x": 33.9, "y": 62.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "5",  "title": "Slot 5",  "x": 33.9, "y": 79.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "1",  "title": "USP-S | Serum 4x Reason K14 Paper",  "x": 33.9, "y": 7.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/usp.png" },
+      { "id": "2",  "title": "Dual Berettas | Panther 4x Complexity K14 Paper",  "x": 33.9, "y": 27.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/dualies.png" },
+      { "id": "3",  "title": "P250 | Steel Disruption 4x Complexity K14 Holo",  "x": 33.9, "y": 45.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/p250.png" },
+      { "id": "4",  "title": "Five-SeveN | Case Hardened Tier 1 #670",  "x": 33.9, "y": 62.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "5",  "title": "Desert Eagle | Blaze 1x HR K14 Holo",  "x": 33.9, "y": 79.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/deagle.png" },
 
       { "id": "6",  "title": "Slot 6",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "7",  "title": "Slot 7",  "x": 45.2, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
@@ -42,6 +42,7 @@
     ]
   }
 }
+
 
 
 
