@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "debug": true,
+  "hotspots": {
+    "blue": [
+      {
+        "id": "ak",
+        "title": "AK-47 | Example",
+        "x": 12,
+        "y": 52,
+        "w": 14,
+        "h": 12,
+        "image": "assets/weapons/ak.png"
+      },
+      {
+        "id": "awp",
+        "title": "AWP | Example",
+        "x": 30,
+        "y": 28,
+        "w": 15,
+        "h": 12,
+        "image": "assets/weapons/awp.png"
+      },
+      {
+        "id": "knife",
+        "title": "Knife | Example",
+        "x": 70,
+        "y": 60,
+        "w": 10,
+        "h": 12,
+        "image": "assets/weapons/knife.png"
+      }
+    ],
+    "gold": [
+      {
+        "id": "ak",
+        "title": "AK-47 | Example",
+        "x": 12,
+        "y": 52,
+        "w": 14,
+        "h": 12,
+        "image": "assets/weapons/ak.png"
+      },
+      {
+        "id": "awp",
+        "title": "AWP | Example",
+        "x": 30,
+        "y": 28,
+        "w": 15,
+        "h": 12,
+        "image": "assets/weapons/awp.png"
+      },
+      {
+        "id": "knife",
+        "title": "Knife | Example",
+        "x": 70,
+        "y": 60,
+        "w": 10,
+        "h": 12,
+        "image": "assets/weapons/knife.png"
+      }
+    ]
+  }
+}
