@@ -1,35 +1,34 @@
 const grid = document.getElementById('grid');
 const statusEl = document.getElementById('status');
+const searchInput = document.getElementById('search');
 
 document.getElementById('year').textContent = new Date().getFullYear();
-
-const fmtDate = (d) =>
-  new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(d);
 
 const MS_HOUR = 60 * 60 * 1000;
 const MS_DAY = 24 * MS_HOUR;
 
-/**
- * Compute midnight in PST (fixed UTC-8) for the given Date's calendar day,
- * then add 8 days to get the unlock moment (also midnight PST).
- */
+const fmtDate = (d) =>
+  new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(d);
+
+/** Midnight PST (fixed UTC-8), then +8 days at midnight PST */
 function unlockAtMidnightPST(purchaseDate) {
   if (!purchaseDate) return null;
   const y = purchaseDate.getUTCFullYear();
-  const m = purchaseDate.getUTCMonth();   // 0-11
+  const m = purchaseDate.getUTCMonth();
   const d = purchaseDate.getUTCDate();
-  // Midnight PST == 08:00 UTC of that same calendar day
   const midnightPST_utcMs = Date.UTC(y, m, d, 8, 0, 0, 0);
-  return new Date(midnightPST_utcMs + 8 * MS_DAY); // +8 days at midnight PST
+  return new Date(midnightPST_utcMs + 8 * MS_DAY);
 }
 
-/** Format "Xd Y hours" with your requested spacing: "3days 3 hours" */
+/** e.g. "6 days 3 hours" (with the space you wanted) */
 function formatDaysHours(ms) {
-  if (ms <= 0) return '0days 0 hours';
+  if (ms <= 0) return '0 days 0 hours';
   const days = Math.floor(ms / MS_DAY);
   const hours = Math.floor((ms % MS_DAY) / MS_HOUR);
-  return `${days}days ${hours} hours`;
+  return `${days} days ${hours} hours`;
 }
+
+let ALL_ITEMS = [];
 
 async function loadItems() {
   try {
@@ -42,10 +41,6 @@ async function loadItems() {
 
     /** @type {Array<any>} */
     const rows = await res.json();
-    const now = Date.now();
-
-    grid.innerHTML = '';
-
     const items = rows
       .map((r) => {
         const name = (r.name || '').toString().trim();
@@ -53,84 +48,10 @@ async function loadItems() {
         const unlockAt = purchasedAt ? unlockAtMidnightPST(purchasedAt) : null;
         return { ...r, name, purchasedAt, unlockAt };
       })
-      .filter((r) => r.name); // prevent empty cards
+      .filter((r) => r.name); // no empty cards
 
-    if (!items.length) {
-      statusEl.textContent = 'No items currently available.';
-      grid.setAttribute('aria-busy', 'false');
-      return;
-    }
-
-    const tpl = document.getElementById('card-tpl');
-
-    for (const row of items) {
-      const card = /** @type {HTMLElement} */ (tpl.content.cloneNode(true));
-
-      // Title
-      card.querySelector('.item-name').textContent = row.name;
-
-      // Image priority: sheet-provided URL -> Steam lookup -> chicken
-      const img = card.querySelector('.thumb');
-      img.alt = row.name;
-      img.src = 'assets/chicken.png'; // safe default
-      img.onerror = () => { img.src = 'assets/chicken.png'; }; // hard fallback
-
-      if (row.image && typeof row.image === 'string' && row.image.trim()) {
-        img.src = row.image.trim();
-      } else {
-        try {
-          const params = new URLSearchParams({ name: row.name });
-          if (row.float != null && row.float !== '') params.set('float', String(row.float));
-          const imgRes = await fetch(`/.netlify/functions/resolve-image?${params.toString()}`);
-          if (imgRes.ok) {
-            const { url } = await imgRes.json();
-            if (url) img.src = url; // otherwise stays chicken
-          }
-        } catch (e) {
-          console.debug('resolve-image failed for', row.name, e);
-        }
-      }
-
-      // Availability date field:
-      // - If unlocked => display "-"
-      // - If still locked => display the exact unlock date (for buyer clarity)
-      const availEl = card.querySelector('.available-date');
-      if (row.unlockAt && row.unlockAt.getTime() <= now) {
-        availEl.textContent = '-';
-      } else {
-        availEl.textContent = row.unlockAt ? fmtDate(row.unlockAt) : 'TBD';
-      }
-
-      // Status line: "Available" vs "Trade locked for Xdays Y hours"
-      const statusLine = card.querySelector('.status-line');
-      if (row.unlockAt && row.unlockAt.getTime() <= now) {
-        statusLine.textContent = 'Available';
-        const badge = document.createElement('span');
-        badge.className = 'badge badge-available';
-        badge.textContent = 'Ready';
-        card.querySelector('.card-head').appendChild(badge);
-      } else {
-        const msLeft = row.unlockAt ? (row.unlockAt.getTime() - now) : 0;
-        statusLine.textContent = `Trade locked for ${formatDaysHours(msLeft)}`;
-        const badge = document.createElement('span');
-        badge.className = 'badge badge-locked';
-        badge.textContent = 'Locked';
-        card.querySelector('.card-head').appendChild(badge);
-      }
-
-      // Float + Special
-      card.querySelector('.float').textContent = (row.float ?? '').toString();
-      const spec = (row.special ?? '').toString().trim();
-      const specialWrap = card.querySelector('.special-wrap');
-      if (spec) {
-        card.querySelector('.special').textContent = spec;
-      } else {
-        specialWrap.remove();
-      }
-
-      grid.appendChild(card);
-    }
-
+    ALL_ITEMS = items;
+    render(items);
     statusEl.textContent = '';
     grid.setAttribute('aria-busy', 'false');
   } catch (err) {
@@ -139,5 +60,103 @@ async function loadItems() {
     grid.setAttribute('aria-busy', 'false');
   }
 }
+
+/** Render items, optionally filtered by search query (name only) */
+async function render(items, q = '') {
+  const now = Date.now();
+  const tpl = document.getElementById('card-tpl');
+
+  // simple name-only search (case-insensitive)
+  const query = q.trim().toLowerCase();
+  const list = query ? items.filter(i => i.name.toLowerCase().includes(query)) : items;
+
+  grid.innerHTML = '';
+  if (!list.length) {
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.textContent = 'No matching items.';
+    grid.appendChild(p);
+    return;
+  }
+
+  for (const row of list) {
+    const card = /** @type {HTMLElement} */ (tpl.content.cloneNode(true));
+
+    // Title
+    card.querySelector('.item-name').textContent = row.name;
+
+    // Image priority: sheet-provided URL -> resolver -> chicken
+    const img = card.querySelector('.thumb');
+    img.alt = row.name;
+    img.src = 'assets/chicken.png';
+    img.onerror = () => { img.src = 'assets/chicken.png'; };
+
+    if (row.image && typeof row.image === 'string' && row.image.trim()) {
+      img.src = row.image.trim();
+    } else {
+      try {
+        const params = new URLSearchParams({ name: row.name });
+        if (row.float != null && row.float !== '') params.set('float', String(row.float));
+        const imgRes = await fetch(`/.netlify/functions/resolve-image?${params.toString()}`);
+        if (imgRes.ok) {
+          const { url } = await imgRes.json();
+          if (url) img.src = url;
+        }
+      } catch {
+        /* fallback already set */
+      }
+    }
+
+    // Status + Available on
+    const availableWrap = card.querySelector('.available-wrap');
+    const availEl = card.querySelector('.available-date');
+    const statusLine = card.querySelector('.status-line');
+
+    if (row.unlockAt && row.unlockAt.getTime() <= now) {
+      // UNLOCKED
+      statusLine.textContent = 'Unlocked';
+      // remove the "Available on" row entirely
+      availableWrap?.remove();
+      // optional badge (kept same styles)
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-available';
+      badge.textContent = 'Ready';
+      card.querySelector('.card-head').appendChild(badge);
+    } else {
+      // LOCKED
+      const msLeft = row.unlockAt ? (row.unlockAt.getTime() - now) : 0;
+      statusLine.textContent = `Trade locked for ${formatDaysHours(msLeft)}`;
+      availEl.textContent = row.unlockAt ? fmtDate(row.unlockAt) : 'TBD';
+
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-locked';
+      badge.textContent = 'Locked';
+      card.querySelector('.card-head').appendChild(badge);
+    }
+
+    // Float + Special
+    card.querySelector('.float').textContent = (row.float ?? '').toString();
+    const spec = (row.special ?? '').toString().trim();
+    const specialWrap = card.querySelector('.special-wrap');
+    if (spec) {
+      card.querySelector('.special').textContent = spec;
+    } else {
+      specialWrap.remove();
+    }
+
+    grid.appendChild(card);
+  }
+}
+
+// --- search wiring (press "/" to focus, live filtering) ---
+function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+const runSearch = debounce(() => render(ALL_ITEMS, searchInput.value), 150);
+searchInput?.addEventListener('input', runSearch);
+window.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
 
 loadItems();
