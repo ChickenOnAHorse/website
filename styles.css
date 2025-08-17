@@ -6,7 +6,6 @@
   --border:#e5e7eb;
 }
 
-/* Base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -17,7 +16,6 @@ body{
 }
 .container{max-width:1100px;margin:0 auto;padding:0 1rem}
 
-/* Header / hero (unchanged) */
 .site-header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.7);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--border)}
 .header-inner{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:center;height:64px}
 .brand{display:flex;align-items:center;gap:.6rem;font-weight:800}
@@ -28,10 +26,46 @@ body{
 .hero h1{font-size:clamp(2rem,3vw + 1rem,3rem);margin:0 0 .4rem}
 .lead{color:var(--muted)}
 
-/* Section header + search */
 .section{padding:2rem 0}
-.section-head{display:flex;gap:1rem;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.search-wrap{position:relative;display:inline-flex;align-items:center}
+.section-head{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:1rem;
+  align-items:end;
+  margin-bottom:1rem;
+}
+.section-head h2{margin:0}
+.filters{
+  grid-column: 1 / -1;
+  display:flex;
+  gap:1rem;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.filter-categories{
+  display:flex;
+  gap:1rem;
+  align-items:center;
+  border:1px solid var(--border);
+  padding:.4rem .6rem;
+  border-radius:.6rem;
+  margin:0;
+}
+.filter-categories legend{font-size:.85rem;color:var(--muted);padding:0 .35rem}
+.filter-sort{
+  display:flex;gap:.75rem;align-items:center;
+}
+#sort{
+  appearance:none;
+  border:1px solid var(--border);
+  background:#fff;
+  padding:.4rem .6rem;
+  border-radius:.6rem;
+  font:inherit;
+}
+.only-unlocked{display:flex;gap:.4rem;align-items:center}
+
+.search-wrap{position:relative;display:inline-flex;align-items:center;justify-self:end}
 #search{
   appearance:none;border:1px solid var(--border);background:#fff;
   padding:.5rem .75rem .5rem 2.25rem;border-radius:.6rem;font:inherit;min-width:240px
@@ -39,12 +73,8 @@ body{
 .search-wrap::before{content:"🔎";position:absolute;left:.6rem;opacity:.7;font-size:.95rem}
 .kbd{margin-left:.4rem;border:1px solid var(--border);border-bottom-width:2px;padding:.05rem .35rem;border-radius:.35rem;font-size:.75rem;color:var(--muted);background:#fff}
 
-/* GRID — restore 4 columns on desktop, then 3/2/1 responsively */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:1rem;
-}
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 @media (max-width:1024px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:780px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:520px){.grid{grid-template-columns:1fr}}
@@ -60,21 +90,15 @@ body{
 .card-head{padding:0.9rem 1rem 0; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;}
 .item-name{margin:0;font-size:1.05rem}
 
-/* IMAGE — keep a consistent thumbnail box and contain the image */
+/* IMAGE */
 .thumb-wrap{
   border-top:1px solid var(--border);
   border-bottom:1px solid var(--border);
   background:#fafafa;
-  /* Fixed aspect box so images aren’t huge */
-  aspect-ratio: 4 / 3;   /* height scales with width */
-  padding:.5rem;         /* little breathing room */
+  aspect-ratio: 4 / 3;
+  padding:.5rem;
 }
-.thumb{
-  width:100%;
-  height:100%;
-  object-fit:contain;    /* never overflow; letterbox as needed */
-  display:block;
-}
+.thumb{width:100%;height:100%;object-fit:contain;display:block}
 
 /* META */
 .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;padding:0 .9rem 1rem;margin:0}
@@ -94,3 +118,6 @@ body{
 }
 .badge-available{ background:#dcfce7; color:#14532d; }
 .badge-locked{ background:#fde68a; color:#78350f; }
+
+/* a11y helpers */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
