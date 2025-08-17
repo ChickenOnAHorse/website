@@ -67,28 +67,38 @@ document.addEventListener('DOMContentLoaded', () => {
       // guard invalid entries
       if (typeof h.x !== 'number' || typeof h.y !== 'number' || typeof h.w !== 'number' || typeof h.h !== 'number') return;
 
-      const el = document.createElement('div');
-      el.className = 'hotspot';
-      el.style.left   = `${h.x}%`;
-      el.style.top    = `${h.y}%`;
-      el.style.width  = `${h.w}%`;
-      el.style.height = `${h.h}%`;
-      el.setAttribute('aria-label', h.title || h.id || 'weapon');
+     const el = document.createElement('div');
+el.className = 'hotspot';
+el.style.left   = `${h.x}%`;
+el.style.top    = `${h.y}%`;
+el.style.width  = `${h.w}%`;
+el.style.height = `${h.h}%`;
 
-      if (DEBUG_UI) {
-        el.style.boxShadow = '0 0 0 2px rgba(96,165,250,.65)';
-        const label = document.createElement('div');
-        label.className = 'label';
-        label.textContent = h.title || h.id || '';
-        el.appendChild(label);
-      }
+/* Tooltip text + accessibility label */
+const titleText = h.title || h.id || 'weapon';
+el.setAttribute('data-title', titleText);
+el.setAttribute('aria-label', titleText);
 
-      el.addEventListener('click', (ev) => {
-        ev.stopPropagation(); // prevent side-band swap underneath
-        openModal(h.title || h.id || '', h.image || '');
-      });
+/* Keyboard focus */
+el.tabIndex = 0;
 
-      spotsEl.appendChild(el);
+/* Click opens modal */
+el.addEventListener('click', (ev) => {
+  ev.stopPropagation();
+  openModal(titleText, h.image || '');
+});
+
+/* Keyboard: Enter/Space open modal */
+el.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter' || ev.key === ' ') {
+    ev.preventDefault();
+    openModal(titleText, h.image || '');
+  }
+});
+
+/* Append to layer */
+spotsEl.appendChild(el);
+
     });
   }
 
@@ -203,3 +213,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
