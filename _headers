@@ -1,0 +1,2 @@
+/*
+  Content-Security-Policy: default-src 'self'; img-src 'self' https://steamcommunity-a.akamaihd.net; connect-src 'self' https://script.google.com; style-src 'self' 'unsafe-inline'; script-src 'self'

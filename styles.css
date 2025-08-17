@@ -1,0 +1,6 @@
+:root{--bg:#fffdf8;--panel:#fff;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb;}
+body{margin:0;font-family:sans-serif;background:var(--bg);color:var(--ink);}
+.container{max-width:900px;margin:0 auto;padding:0 1rem;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:.5rem;overflow:hidden;padding:1rem;}
+.card img{width:100%;height:auto;display:block;}
