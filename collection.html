@@ -1,142 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>My Collection — Chicken on a Horse</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Collection</title>
   <style>
-    /* Page-local tweaks for the interactive loadout */
-    .loadout-wrap{
-      display:grid; place-items:center;
-      min-height:calc(100vh - 160px);
-      padding:2rem 1rem;
-    }
-    .loadout{
-      width:min(1200px, 95vw);
-      position:relative;
-      user-select:none;
-      /* default cursor; JS will flip to pointer when over the active band */
-      cursor: default;
-    }
-    .loadout img{
-      width:100%; height:auto; display:block;
-      border-radius:.6rem; box-shadow:0 8px 30px rgba(0,0,0,.35);
-      transition: opacity .28s ease;
-      opacity:1;
-    }
-    .loadout img.is-fading{ opacity:0; }
-
-    .loadout .hint{
-      text-align:center; color:var(--muted); margin-top:.75rem;
-      font-size:.9rem;
+    body {
+      background-color: #121212;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
     }
 
-    /* --- Hover stripes (visual cue) --- */
-    .loadout::before,
-    .loadout::after{
-      content:"";
-      position:absolute; inset:0;
-      pointer-events:none; /* don't block clicks */
-      opacity:0; transition:opacity .18s ease;
+    h1 {
+      margin-bottom: 20px;
     }
-    /* When blue view is active, show a gold stripe on the RIGHT on hover */
-    .loadout[data-state="blue"]:hover::after{
-      opacity:1;
-      left:78%; width:22%;
-      background:linear-gradient(90deg, rgba(255,215,0,.05) 0%, rgba(255,215,0,.18) 100%);
-      border-top-right-radius:.6rem; border-bottom-right-radius:.6rem;
+
+    .image-container {
+      position: relative;
+      max-width: 90vw;
+      max-height: 80vh;
     }
-    /* When gold view is active, show a blue stripe on the LEFT on hover */
-    .loadout[data-state="gold"]:hover::before{
-      opacity:1;
-      left:0; width:22%;
-      background:linear-gradient(90deg, rgba(30,144,255,.18) 0%, rgba(30,144,255,.05) 100%);
-      border-top-left-radius:.6rem; border-bottom-left-radius:.6rem;
+
+    #loadoutImage {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      transition: opacity 0.6s ease-in-out;
+      opacity: 1;
+    }
+
+    /* Invisible click zones */
+    .click-zone {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 25%;
+      cursor: pointer;
+    }
+    .zone-blue {
+      right: 0;
+    }
+    .zone-gold {
+      left: 0;
+    }
+
+    /* Hover stripe highlight */
+    .click-zone:hover {
+      background-color: rgba(255, 255, 255, 0.15);
     }
   </style>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
+  <h1>My Collection</h1>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <nav class="top-nav" aria-label="Primary">
-        <a href="index.html" class="logo" aria-label="Home">🐔🐴</a>
-        <div class="nav-links">
-          <a href="collection.html" class="nav-link active">My Collection</a>
-          <a href="index.html" class="nav-link">Skins for Sale/Trade</a>
-          <a href="about.html" class="nav-link">About</a>
-          <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle theme" title="Toggle theme">☾</button>
-        </div>
-      </nav>
-    </div>
-  </header>
+  <div class="image-container">
+    <img id="loadoutImage" src="blue-loadout.png" alt="Loadout" />
+    <!-- Left side gold zone -->
+    <div class="click-zone zone-gold" title="Switch to Gold"></div>
+    <!-- Right side blue zone -->
+    <div class="click-zone zone-blue" title="Switch to Blue"></div>
+  </div>
 
-  <main id="main" class="container section">
-    <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
+  <script>
+    const img = document.getElementById("loadoutImage");
+    const goldZone = document.querySelector(".zone-gold");
+    const blueZone = document.querySelector(".zone-blue");
 
-    <div class="loadout-wrap">
-      <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
-        <!-- Start with the mostly BLUE image -->
-        <img id="loadoutImg" src="assets/loadout-blue.png" alt="CS2 loadout view" loading="eager" />
-        <div class="hint">
-          Click the <strong>gold</strong> band (right side) to switch to gold view, or the <strong>blue</strong> band (left side) to switch back.
-        </div>
-      </div>
-    </div>
-  </main>
+    const blueSrc = "blue-loadout.png";   // replace with your actual filename
+    const goldSrc = "gold-loadout.png";   // replace with your actual filename
 
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <p>© <span id="year"></span> Chicken on a Horse</p>
-      <a href="#top" class="back-to-top">Back to top ↑</a>
-    </div>
-  </footer>
-
- <script src="app.js" defer></script>
-<script src="app.js" defer></script>
-<script>
-  const BLUE_SRC = 'assets/loadout-blue.png';
-  const GOLD_SRC = 'assets/loadout-gold.png';
-  const BLUE_TO_GOLD_RIGHT_BAND = 0.22;
-  const GOLD_TO_BLUE_LEFT_BAND  = 0.22;
-
-  const img = document.getElementById('loadoutImg');
-  const container = document.getElementById('loadout');
-
-  // Preload images
-  [BLUE_SRC, GOLD_SRC].forEach(src => { const i = new Image(); i.src = src; });
-
-  function swap(to) {
-    container.dataset.state = to;
-    img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
-  }
-
-  img.addEventListener('click', (e) => {
-    const rect = img.getBoundingClientRect();
-    const xRel = (e.clientX - rect.left) / rect.width;
-    const state = container.dataset.state;
-
-    if (state === 'blue' && xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
-      swap('gold');
-    } else if (state === 'gold' && xRel <= GOLD_TO_BLUE_LEFT_BAND) {
-      swap('blue');
+    function fadeSwap(newSrc) {
+      img.style.opacity = 0;
+      setTimeout(() => {
+        img.src = newSrc;
+        img.onload = () => {
+          img.style.opacity = 1;
+        };
+      }, 300);
     }
-  });
 
-  img.addEventListener('mousemove', (e) => {
-    const rect = img.getBoundingClientRect();
-    const xRel = (e.clientX - rect.left) / rect.width;
-    const state = container.dataset.state;
-    const inActiveZone = (state === 'blue')
-      ? (xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND)
-      : (xRel <= GOLD_TO_BLUE_LEFT_BAND);
-    img.style.cursor = inActiveZone ? 'pointer' : 'default';
-  });
-  img.addEventListener('mouseleave', () => { img.style.cursor = 'default'; });
-</script>
+    goldZone.addEventListener("click", () => {
+      if (img.src.includes(blueSrc)) {
+        fadeSwap(goldSrc);
+      }
+    });
+
+    blueZone.addEventListener("click", () => {
+      if (img.src.includes(goldSrc)) {
+        fadeSwap(blueSrc);
+      }
+    });
+  </script>
 </body>
 </html>
-
-
