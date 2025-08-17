@@ -1,2 +1,2 @@
 /*
-  Content-Security-Policy: default-src 'self'; img-src 'self' https://steamcommunity-a.akamaihd.net; connect-src 'self' https://script.google.com; style-src 'self' 'unsafe-inline'; script-src 'self'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://script.google.com https://*.googleusercontent.com; img-src 'self' data: https://community.akamai.steamstatic.com https://steamcommunity-a.akamaihd.net https://avatars.akamai.steamstatic.com https://steamuserimages-a.akamaihd.net; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none';
