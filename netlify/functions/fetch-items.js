@@ -1,4 +1,7 @@
-// Uses your object-shaped JSON fields (Date, Item, Include, Status, etc.)
+// netlify/functions/fetch-items.js
+// Uses your object-shaped JSON fields (Date, Item, Special Characteristics, Float, Include, Status)
+// and applies the exact filter you specified:
+//   Include === TRUE  AND  Status is blank
 exports.handler = async function (event) {
   const APPS_SCRIPT_URL =
     process.env.APPS_SCRIPT_URL ||
@@ -6,7 +9,7 @@ exports.handler = async function (event) {
 
   // Helpers
   const isBlank = (v) => v === null || v === undefined || String(v).trim() === "";
-  const isTruthy = (v) => (v === true) || ["true", "yes", "y", "1", "show", "x"].includes(String(v).trim().toLowerCase());
+  const isTrueBool = (v) => v === true || String(v).trim().toLowerCase() === "true";
 
   try {
     const upstream = await fetch(APPS_SCRIPT_URL, { headers: { accept: "application/json" } });
@@ -15,41 +18,34 @@ exports.handler = async function (event) {
     }
     const data = await upstream.json();
 
-    // Normalize to our frontend shape
-    const rows = Array.isArray(data) ? data.map((r) => ({
-      purchaseDate: r.Date ?? r.date ?? "",
-      name: r.Item ?? "",
-      special: r["Special Characteristics"] ?? "",
-      float: r.Float ?? "",
-      include: r.Include,                        // boolean
-      status: r.Status ?? "",                    // empty => available
-      tag: r["L or K or CH or S or HT"] ?? ""    // optional extra field
-    })) : [];
+    // Normalize (supports array of objects or array of arrays, just in case)
+    const rows = Array.isArray(data) && data.length && !Array.isArray(data[0])
+      ? data.map((r) => ({
+          purchaseDate: r.Date ?? r.date ?? "",
+          name: r.Item ?? "",
+          special: r["Special Characteristics"] ?? "",
+          float: r.Float ?? "",
+          Include: r.Include,     // boolean in your sample
+          Status: r.Status ?? "", // blank means available
+        }))
+      : Array.isArray(data)
+      ? data.map((row) => ({
+          // Fallback mapping if someone returns rows as arrays: A..G
+          purchaseDate: row[0],
+          name: row[1],
+          special: row[2],
+          float: row[3],
+          Include: row[5],
+          Status: row[6],
+        }))
+      : [];
 
-    // Filter: Include is truthy AND Status is blank
-    const visible = rows.filter((r) => isTruthy(r.include) && isBlank(r.status));
+    // EXACT FILTER: Include must be TRUE AND Status must be blank
+    const visible = rows.filter((r) => isTrueBool(r.Include) && isBlank(r.Status));
 
-    // Debug view: add ?debug=1 to inspect counts and samples
+    // Optional debug view
     if (event?.queryStringParameters?.debug === "1") {
       return {
         statusCode: 200,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          rawCount: Array.isArray(data) ? data.length : 0,
-          normalizedCount: rows.length,
-          visibleCount: visible.length,
-          normalizedSample: rows.slice(0, 5),
-          firstVisibleSample: visible.slice(0, 5)
-        })
-      };
-    }
-
-    return {
-      statusCode: 200,
-      headers: { "content-type": "application/json", "cache-control": "no-store" },
-      body: JSON.stringify(visible)
-    };
-  } catch (e) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Fetch failed", detail: String(e) }) };
-  }
-};
