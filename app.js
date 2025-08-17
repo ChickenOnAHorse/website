@@ -18,7 +18,10 @@ async function loadItems() {
   try {
     statusEl.textContent = 'Loading inventory…';
     const res = await fetch('/.netlify/functions/fetch-items', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`fetch-items failed ${res.status}: ${text}`);
+    }
 
     /** @type {Array<any>} */
     const rows = await res.json();
@@ -26,7 +29,6 @@ async function loadItems() {
 
     grid.innerHTML = '';
 
-    // We show *all* filtered rows from the server, but never render truly empty ones (no name).
     const items = rows
       .map((r) => {
         const name = (r.name || '').toString().trim();
@@ -34,7 +36,7 @@ async function loadItems() {
         const availableAt = purchasedAt ? addDays(purchasedAt, 8) : null;
         return { ...r, name, purchasedAt, availableAt };
       })
-      .filter((r) => r.name); // prevent empty cards
+      .filter((r) => r.name); // never render empty names
 
     if (!items.length) {
       statusEl.textContent = 'No items currently available.';
@@ -50,22 +52,26 @@ async function loadItems() {
       // Title
       card.querySelector('.item-name').textContent = row.name;
 
-      // Image: Steam → fallback chicken
+      // Image: default to chicken, then try Steam
       const img = card.querySelector('.thumb');
       img.alt = row.name;
+      img.src = 'assets/chicken.png'; // safe default
+      img.onerror = () => { img.src = 'assets/chicken.png'; }; // hard fallback
+
       try {
         const imgRes = await fetch(`/.netlify/functions/steam-image?name=${encodeURIComponent(row.name)}`);
         if (imgRes.ok) {
           const { url } = await imgRes.json();
-          img.src = url || 'assets/chicken.png';
-        } else {
-          img.src = 'assets/chicken.png';
+          if (url) {
+            img.src = url;
+          } // else keep chicken
         }
-      } catch {
-        img.src = 'assets/chicken.png';
+      } catch (e) {
+        // keep chicken; also helpful for debugging
+        console.debug('steam-image lookup failed for', row.name, e);
       }
 
-      // Availability date (always show the date, if known)
+      // Status + Available date
       const availEl = card.querySelector('.available-date');
       if (row.availableAt) {
         availEl.textContent = fmtDate(row.availableAt);
@@ -73,7 +79,6 @@ async function loadItems() {
         availEl.textContent = 'TBD';
       }
 
-      // Status line
       const statusLine = card.querySelector('.status-line');
       if (row.availableAt && row.availableAt <= now) {
         statusLine.textContent = 'Available';
@@ -83,11 +88,10 @@ async function loadItems() {
         card.querySelector('.card-head').appendChild(badge);
       } else {
         const daysLeft = row.availableAt ? ceilDays(row.availableAt - now) : null;
-        if (daysLeft !== null) {
-          statusLine.textContent = `Trade locked for ${daysLeft} more ${daysLeft === 1 ? 'day' : 'days'}`;
-        } else {
-          statusLine.textContent = 'Trade lock unknown';
-        }
+        statusLine.textContent =
+          daysLeft !== null
+            ? `Trade locked for ${daysLeft} more ${daysLeft === 1 ? 'day' : 'days'}`
+            : 'Trade lock unknown';
         const badge = document.createElement('span');
         badge.className = 'badge badge-locked';
         badge.textContent = 'Locked';
