@@ -4,22 +4,22 @@
   "hotspots": {
     "gold": [
       { "id": "1",  "title": "Slot 1",  "x": 33.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "2",  "title": "Slot 2",  "x": 33.3, "y": 30.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "3",  "title": "Slot 3",  "x": 33.3, "y": 48.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "2",  "title": "Slot 2",  "x": 33.3, "y": 28.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "3",  "title": "Slot 3",  "x": 33.3, "y": 46.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "4",  "title": "Slot 4",  "x": 33.3, "y": 63.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "5",  "title": "Slot 5",  "x": 33.3, "y": 79.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "5",  "title": "Slot 5",  "x": 33.3, "y": 81.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
 
       { "id": "6",  "title": "Slot 6",  "x": 44.9, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "7",  "title": "Slot 7",  "x": 44.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "8",  "title": "Slot 8",  "x": 44.9, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "9",  "title": "Slot 9",  "x": 44.9, "y": 61.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "10", "title": "Slot 10", "x": 44.9, "y": 79.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "10", "title": "Slot 10", "x": 44.9, "y": 81.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
 
       { "id": "11", "title": "Slot 11", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "12", "title": "Slot 12", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "13", "title": "Slot 13", "x": 56.3, "y": 43.0, "w": 10.1, "h": 16.1, "image": "assets/weaponsUntitled2.png" },
+      { "id": "13", "title": "Slot 13", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weaponsUntitled2.png" },
       { "id": "14", "title": "Slot 14", "x": 56.3, "y": 63.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "15", "title": "Slot 15", "x": 56.3, "y": 79.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" }
+      { "id": "15", "title": "Slot 15", "x": 56.3, "y": 82.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" }
     ],
     "blue": [
       { "id": "1",  "title": "Slot 1",  "x": 25, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
@@ -42,6 +42,7 @@
     ]
   }
 }
+
 
 
 
