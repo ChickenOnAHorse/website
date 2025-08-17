@@ -86,87 +86,68 @@
 
   <script src="app.js" defer></script>
   <script>
-    // --- Config: paths to your two images ---
-    const BLUE_SRC = 'assets/loadout-blue.png';
-    const GOLD_SRC = 'assets/loadout-gold.png';
+  const BLUE_SRC = 'assets/loadout-blue.png';
+  const GOLD_SRC = 'assets/loadout-gold.png';
 
-    // --- Region cutoffs (fractions of width) ---
-    // When blue is showing, clicks in the RIGHT 22% flip to gold:
-    const BLUE_TO_GOLD_RIGHT_BAND = 0.22;   // adjust if needed
-    // When gold is showing, clicks in the LEFT 22% flip to blue:
-    const GOLD_TO_BLUE_LEFT_BAND  = 0.22;   // adjust if needed
+  const BLUE_TO_GOLD_RIGHT_BAND = 0.22; // right 22% of width
+  const GOLD_TO_BLUE_LEFT_BAND  = 0.22; // left 22% of width
 
-    // Preload the alternate image for a snappy swap
-    const preload = new Image(); preload.src = GOLD_SRC;
+  const preload = new Image(); preload.src = GOLD_SRC;
 
-    const container = document.getElementById('loadout');
-    const img = document.getElementById('loadoutImg');
+  const container = document.getElementById('loadout');
+  const img = document.getElementById('loadoutImg');
 
-    let isTransitioning = false;
+  let isTransitioning = false;
 
-    function swap(to){
-      if (isTransitioning) return;
-      const current = container.dataset.state;
-      if (to === current) return;
-      isTransitioning = true;
+  function swap(to){
+    if (isTransitioning) return;
+    const current = container.dataset.state;
+    if (to === current) return;
+    isTransitioning = true;
 
-      // fade out
-      img.classList.add('is-fading');
+    img.classList.add('is-fading');
 
-      // after fade-out, swap src, then fade in on load
-      const doSwap = () => {
-        img.removeEventListener('transitionend', doSwap);
-        img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
-        container.dataset.state = to;
+    const doSwap = () => {
+      img.removeEventListener('transitionend', doSwap);
+      img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
+      container.dataset.state = to;
 
-        // Wait for the image to load before fading back in
-        const onLoad = () => {
-          img.removeEventListener('load', onLoad);
-          // let the browser apply layout, then fade in
-          requestAnimationFrame(() => {
-            img.classList.remove('is-fading');
-            // unlock after fade-in finishes
-            img.addEventListener('transitionend', function endIn(){
-              img.removeEventListener('transitionend', endIn);
-              isTransitioning = false;
-            }, { once:true });
-          });
-        };
-        img.addEventListener('load', onLoad, { once:true });
+      const onLoad = () => {
+        img.removeEventListener('load', onLoad);
+        requestAnimationFrame(() => {
+          img.classList.remove('is-fading');
+          img.addEventListener('transitionend', function endIn(){
+            img.removeEventListener('transitionend', endIn);
+            isTransitioning = false;
+          }, { once:true });
+        });
       };
-      img.addEventListener('transitionend', doSwap);
+      img.addEventListener('load', onLoad, { once:true });
+    };
+    img.addEventListener('transitionend', doSwap, { once:true });
+  }
+
+  // ✅ Bind clicks on the whole container, not just the <img>
+  container.addEventListener('click', (e) => {
+    if (isTransitioning) return;
+    const rect = container.getBoundingClientRect();
+    const xRel = (e.clientX - rect.left) / rect.width; // 0..1
+    const state = container.dataset.state;
+
+    if (state === 'blue' && xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
+      swap('gold');
+    } else if (state === 'gold' && xRel <= GOLD_TO_BLUE_LEFT_BAND) {
+      swap('blue');
     }
+  });
 
-    // Click handler using relative X position
-    img.addEventListener('click', (e) => {
-      if (isTransitioning) return;
-      const rect = img.getBoundingClientRect();
-      const xRel = (e.clientX - rect.left) / rect.width; // 0..1
-      const state = container.dataset.state;
-
-      if (state === 'blue') {
-        // Click near the RIGHT edge switches to gold
-        if (xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
-          swap('gold');
-        }
-      } else {
-        // state === 'gold': Click near the LEFT edge switches to blue
-        if (xRel <= GOLD_TO_BLUE_LEFT_BAND) {
-          swap('blue');
-        }
-      }
-    });
-
-    // Optional: keyboard toggle (spacebar)
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        swap(container.dataset.state === 'blue' ? 'gold' : 'blue');
-      }
-    });
-
-    // If you want to visualize click zones for tuning, uncomment:
-    // container.classList.add('show-zones');
-  </script>
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      swap(container.dataset.state === 'blue' ? 'gold' : 'blue');
+    }
+  });
+</script>
 </body>
 </html>
+
