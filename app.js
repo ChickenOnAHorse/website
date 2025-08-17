@@ -6,13 +6,30 @@ document.getElementById('year').textContent = new Date().getFullYear();
 const fmtDate = (d) =>
   new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(d);
 
-const addDays = (date, days) => {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-};
+const MS_HOUR = 60 * 60 * 1000;
+const MS_DAY = 24 * MS_HOUR;
 
-const ceilDays = (ms) => Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+/**
+ * Compute midnight in PST (fixed UTC-8) for the given Date's calendar day,
+ * then add 8 days to get the unlock moment (also midnight PST).
+ */
+function unlockAtMidnightPST(purchaseDate) {
+  if (!purchaseDate) return null;
+  const y = purchaseDate.getUTCFullYear();
+  const m = purchaseDate.getUTCMonth();   // 0-11
+  const d = purchaseDate.getUTCDate();
+  // Midnight PST == 08:00 UTC of that same calendar day
+  const midnightPST_utcMs = Date.UTC(y, m, d, 8, 0, 0, 0);
+  return new Date(midnightPST_utcMs + 8 * MS_DAY); // +8 days at midnight PST
+}
+
+/** Format "Xd Y hours" with your requested spacing: "3days 3 hours" */
+function formatDaysHours(ms) {
+  if (ms <= 0) return '0days 0 hours';
+  const days = Math.floor(ms / MS_DAY);
+  const hours = Math.floor((ms % MS_DAY) / MS_HOUR);
+  return `${days}days ${hours} hours`;
+}
 
 async function loadItems() {
   try {
@@ -25,7 +42,7 @@ async function loadItems() {
 
     /** @type {Array<any>} */
     const rows = await res.json();
-    const now = new Date();
+    const now = Date.now();
 
     grid.innerHTML = '';
 
@@ -33,8 +50,8 @@ async function loadItems() {
       .map((r) => {
         const name = (r.name || '').toString().trim();
         const purchasedAt = r.purchaseDate ? new Date(r.purchaseDate) : null;
-        const availableAt = purchasedAt ? addDays(purchasedAt, 8) : null;
-        return { ...r, name, purchasedAt, availableAt };
+        const unlockAt = purchasedAt ? unlockAtMidnightPST(purchasedAt) : null;
+        return { ...r, name, purchasedAt, unlockAt };
       })
       .filter((r) => r.name); // prevent empty cards
 
@@ -62,34 +79,39 @@ async function loadItems() {
         img.src = row.image.trim();
       } else {
         try {
-          const imgRes = await fetch(`/.netlify/functions/steam-image?name=${encodeURIComponent(row.name)}`);
+          const params = new URLSearchParams({ name: row.name });
+          if (row.float != null && row.float !== '') params.set('float', String(row.float));
+          const imgRes = await fetch(`/.netlify/functions/resolve-image?${params.toString()}`);
           if (imgRes.ok) {
             const { url } = await imgRes.json();
             if (url) img.src = url; // otherwise stays chicken
           }
         } catch (e) {
-          console.debug('steam-image lookup failed for', row.name, e);
+          console.debug('resolve-image failed for', row.name, e);
         }
       }
 
-      // Availability date
+      // Availability date field:
+      // - If unlocked => display "-"
+      // - If still locked => display the exact unlock date (for buyer clarity)
       const availEl = card.querySelector('.available-date');
-      availEl.textContent = row.availableAt ? fmtDate(row.availableAt) : 'TBD';
+      if (row.unlockAt && row.unlockAt.getTime() <= now) {
+        availEl.textContent = '-';
+      } else {
+        availEl.textContent = row.unlockAt ? fmtDate(row.unlockAt) : 'TBD';
+      }
 
-      // Status line ("Available" vs "Trade locked for N more days")
+      // Status line: "Available" vs "Trade locked for Xdays Y hours"
       const statusLine = card.querySelector('.status-line');
-      if (row.availableAt && row.availableAt <= now) {
+      if (row.unlockAt && row.unlockAt.getTime() <= now) {
         statusLine.textContent = 'Available';
         const badge = document.createElement('span');
         badge.className = 'badge badge-available';
         badge.textContent = 'Ready';
         card.querySelector('.card-head').appendChild(badge);
       } else {
-        const daysLeft = row.availableAt ? ceilDays(row.availableAt - now) : null;
-        statusLine.textContent =
-          daysLeft !== null
-            ? `Trade locked for ${daysLeft} more ${daysLeft === 1 ? 'day' : 'days'}`
-            : 'Trade lock unknown';
+        const msLeft = row.unlockAt ? (row.unlockAt.getTime() - now) : 0;
+        statusLine.textContent = `Trade locked for ${formatDaysHours(msLeft)}`;
         const badge = document.createElement('span');
         badge.className = 'badge badge-locked';
         badge.textContent = 'Locked';
