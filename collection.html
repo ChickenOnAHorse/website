@@ -1,103 +1,200 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Collection</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Collection — Chicken on a Horse</title>
+  <link rel="stylesheet" href="styles.css" />
   <style>
-    body {
-      background-color: #121212;
-      color: #f5f5f5;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
+    /* Page-local styles for the interactive loadout */
+    .loadout-wrap{
+      display:grid; place-items:center;
+      min-height:calc(100vh - 160px);
+      padding:2rem 1rem;
+    }
+    .loadout{
+      width:min(1200px, 95vw);
+      position:relative;
+      user-select:none;
+    }
+    .loadout-img{
+      width:100%; height:auto; display:block;
+      border-radius:.6rem; box-shadow:0 8px 30px rgba(0,0,0,.35);
+      transition: opacity .35s ease;
+      opacity:1;
+    }
+    .fade-out{ opacity:0; }
+
+    .hint{
+      text-align:center; color:var(--muted); margin-top:.75rem;
+      font-size:.9rem;
     }
 
-    h1 {
-      margin-bottom: 20px;
-    }
-
-    .image-container {
-      position: relative;
-      max-width: 90vw;
-      max-height: 80vh;
-    }
-
-    #loadoutImage {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      transition: opacity 0.6s ease-in-out;
-      opacity: 1;
-    }
-
-    /* Invisible click zones */
-    .click-zone {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 25%;
-      cursor: pointer;
-    }
-    .zone-blue {
-      right: 0;
-    }
-    .zone-gold {
-      left: 0;
-    }
-
-    /* Hover stripe highlight */
-    .click-zone:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+    /* Hover stripe overlay (visual cue). We draw it with JS by setting left/width */
+    #hoverBand{
+      position:absolute; top:0; height:100%;
+      background:linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
+      border-radius:.6rem;
+      pointer-events:none; /* never blocks clicks */
+      display:none;
     }
   </style>
 </head>
 <body>
-  <h1>My Collection</h1>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-  <div class="image-container">
-    <img id="loadoutImage" src="blue-loadout.png" alt="Loadout" />
-    <!-- Left side gold zone -->
-    <div class="click-zone zone-gold" title="Switch to Gold"></div>
-    <!-- Right side blue zone -->
-    <div class="click-zone zone-blue" title="Switch to Blue"></div>
-  </div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <nav class="top-nav" aria-label="Primary">
+        <a href="index.html" class="logo" aria-label="Home">🐔🐴</a>
+        <div class="nav-links">
+          <a href="collection.html" class="nav-link active">My Collection</a>
+          <a href="index.html" class="nav-link">Skins for Sale/Trade</a>
+          <a href="about.html" class="nav-link">About</a>
+          <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        </div>
+      </nav>
+    </div>
+  </header>
 
+  <main id="main" class="container section">
+    <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
+
+    <div class="loadout-wrap">
+      <div class="loadout" id="loadout" data-state="blue">
+        <!-- Start on blue; JS will resolve the exact asset path -->
+        <img id="loadoutImage" class="loadout-img" src="" alt="CS2 loadout view" />
+        <div id="hoverBand" aria-hidden="true"></div>
+        <div class="hint">
+          Click the <strong>right</strong> gold band to view the gold loadout, or the <strong>left</strong> blue band to return.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> Chicken on a Horse</p>
+      <a href="#top" class="back-to-top">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="app.js" defer></script>
   <script>
-    const img = document.getElementById("loadoutImage");
-    const goldZone = document.querySelector(".zone-gold");
-    const blueZone = document.querySelector(".zone-blue");
+    document.addEventListener('DOMContentLoaded', () => {
+      // ---- Candidate paths (kept in /assets). If you use different names, edit here. ----
+      const CANDIDATES = {
+        blue: ['assets/loadout-blue.png', 'assets/blue-loadout.png'],
+        gold: ['assets/loadout-gold.png', 'assets/gold-loadout.png']
+      };
 
-    const blueSrc = "assets/blue-loadout.png";   // replace with your actual filename
-    const goldSrc = "assets/gold-loadout.png";   // replace with your actual filename
+      const loadout = document.getElementById('loadout');
+      const img = document.getElementById('loadoutImage');
+      const band = document.getElementById('hoverBand');
 
-    function fadeSwap(newSrc) {
-      img.style.opacity = 0;
-      setTimeout(() => {
-        img.src = newSrc;
-        img.onload = () => {
-          img.style.opacity = 1;
-        };
-      }, 300);
-    }
+      const RIGHT_BAND = 0.22; // right 22% (blue -> gold)
+      const LEFT_BAND  = 0.22; // left 22%  (gold -> blue)
 
-    goldZone.addEventListener("click", () => {
-      if (img.src.includes(blueSrc)) {
-        fadeSwap(goldSrc);
+      // Resolve which filenames exist (first that loads wins)
+      function pickExisting(srcs) {
+        return new Promise(resolve => {
+          let idx = 0;
+          const tryNext = () => {
+            if (idx >= srcs.length) return resolve(null);
+            const test = new Image();
+            const path = srcs[idx++];
+            test.onload = () => resolve(path);
+            test.onerror = tryNext;
+            test.src = path + '?v=' + Date.now(); // bust cache to detect 404s reliably
+          };
+          tryNext();
+        });
       }
-    });
 
-    blueZone.addEventListener("click", () => {
-      if (img.src.includes(goldSrc)) {
-        fadeSwap(blueSrc);
-      }
+      (async function init(){
+        const blueSrc = await pickExisting(CANDIDATES.blue);
+        const goldSrc = await pickExisting(CANDIDATES.gold);
+
+        if (!blueSrc || !goldSrc) {
+          console.error('Could not resolve loadout image paths. Check assets/ filenames.');
+          // Show something at least:
+          img.alt = 'Loadout image missing';
+          return;
+        }
+
+        // Preload both
+        [blueSrc, goldSrc].forEach(s => { const i = new Image(); i.src = s; });
+
+        // Set initial image (blue)
+        img.src = blueSrc;
+
+        let isBlue = true;
+
+        function swap(toGold){
+          if (toGold === isBlue) return;
+          isBlue = !isBlue;
+          loadout.dataset.state = isBlue ? 'blue' : 'gold';
+          // fade out -> swap -> fade in
+          img.classList.add('fade-out');
+          const nextSrc = isBlue ? blueSrc : goldSrc;
+          // After the fade-out, swap src and fade back in when it finishes loading
+          setTimeout(() => {
+            img.onload = () => {
+              requestAnimationFrame(() => img.classList.remove('fade-out'));
+            };
+            img.src = nextSrc;
+          }, 180);
+        }
+
+        // Click anywhere in the container
+        loadout.addEventListener('click', (e) => {
+          const rect = loadout.getBoundingClientRect();
+          const xRel = (e.clientX - rect.left) / rect.width; // 0..1
+
+          if (isBlue && xRel >= 1 - RIGHT_BAND) {
+            swap(true);  // blue -> gold
+          } else if (!isBlue && xRel <= LEFT_BAND) {
+            swap(false); // gold -> blue
+          }
+        });
+
+        // Hover band + pointer cursor
+        loadout.addEventListener('mousemove', (e) => {
+          const rect = loadout.getBoundingClientRect();
+          const xRel = (e.clientX - rect.left) / rect.width;
+          let show = false;
+
+          if (isBlue && xRel >= 1 - RIGHT_BAND) {
+            // right stripe
+            band.style.display = 'block';
+            band.style.left = (rect.width * (1 - RIGHT_BAND)) + 'px';
+            band.style.width = (rect.width * RIGHT_BAND) + 'px';
+            show = true;
+          } else if (!isBlue && xRel <= LEFT_BAND) {
+            // left stripe
+            band.style.display = 'block';
+            band.style.left = '0px';
+            band.style.width = (rect.width * LEFT_BAND) + 'px';
+            show = true;
+          } else {
+            band.style.display = 'none';
+          }
+          loadout.style.cursor = show ? 'pointer' : 'default';
+        });
+        loadout.addEventListener('mouseleave', () => {
+          band.style.display = 'none';
+          loadout.style.cursor = 'default';
+        });
+
+        // Spacebar toggles for accessibility/testing
+        document.addEventListener('keydown', (e) => {
+          if (e.code === 'Space') {
+            e.preventDefault();
+            swap(!isBlue);
+          }
+        });
+      })();
     });
   </script>
 </body>
 </html>
-
