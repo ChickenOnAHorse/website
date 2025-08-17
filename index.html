@@ -56,7 +56,7 @@
             </label>
           </div>
 
-          <!-- NEW: live count -->
+          <!-- live count -->
           <div id="count" class="count">Showing 0 items</div>
         </div>
 
@@ -75,11 +75,8 @@
           </div>
           <div class="thumb-wrap">
             <img class="thumb" alt="" loading="lazy" />
-            <!-- NEW: zoom button + pane -->
+            <!-- zoom button (opens global lightbox) -->
             <button class="zoom-btn" type="button" title="View full image" aria-label="View full image">🔍</button>
-            <div class="zoom-pane" aria-hidden="true">
-              <img class="zoom-img" alt="" />
-            </div>
           </div>
           <dl class="meta">
             <div>
@@ -108,7 +105,7 @@
     <section id="about" class="section container">
       <h2>About</h2>
       <p class="muted">
-        Listings update automatically as inventory changes. Images load from Steam when possible;
+        Listings update automatically as inventory changes. Images load from Steam or your sheet (Column H);
         otherwise you’ll see our trusty chicken.
       </p>
     </section>
@@ -120,6 +117,12 @@
       <a href="#top" class="back-to-top">Back to top ↑</a>
     </div>
   </footer>
+
+  <!-- GLOBAL LIGHTBOX -->
+  <div id="lightbox" class="lightbox hidden" aria-modal="true" role="dialog" aria-label="Image preview">
+    <button id="lightbox-close" class="lightbox-close" aria-label="Close preview">×</button>
+    <img id="lightbox-img" alt="">
+  </div>
 
   <script src="app.js" defer></script>
 </body>
