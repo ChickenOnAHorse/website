@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "debug": true,
+  "debug": false,
   "hotspots": {
     "gold": [
       { "id": "1",  "title": "Slot 1",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
@@ -42,6 +42,7 @@
     ]
   }
 }
+
 
 
 
