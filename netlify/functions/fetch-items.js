@@ -1,5 +1,5 @@
 // netlify/functions/fetch-items.js
-// Maps your object-shaped JSON (Date, Item, Special Characteristics, Float, Include, Status)
+// Maps object-shaped JSON (Date, Item, Special Characteristics, Float, Include, Status, Image)
 // Filter rule: Include === true  AND  Status is blank
 
 exports.handler = async function (event) {
@@ -11,28 +11,16 @@ exports.handler = async function (event) {
   const isTrueBool = (v) => v === true || String(v).trim().toLowerCase() === "true";
 
   try {
-    // Fetch from Apps Script
     const upstream = await fetch(APPS_SCRIPT_URL, { headers: { accept: "application/json" } });
-    const bodyText = await upstream.text(); // read once so we can show helpful errors
+    const bodyText = await upstream.text();
     if (!upstream.ok) {
-      return {
-        statusCode: 502,
-        body: `Apps Script responded ${upstream.status}: ${bodyText.slice(0, 500)}`
-      };
+      return { statusCode: 502, body: `Apps Script responded ${upstream.status}: ${bodyText.slice(0, 500)}` };
     }
 
-    // Parse JSON safely
     let data;
-    try {
-      data = JSON.parse(bodyText);
-    } catch (e) {
-      return {
-        statusCode: 500,
-        body: `Apps Script did not return valid JSON. First 300 chars: ${bodyText.slice(0, 300)}`
-      };
-    }
+    try { data = JSON.parse(bodyText); }
+    catch { return { statusCode: 500, body: `Apps Script did not return valid JSON. First 300 chars: ${bodyText.slice(0,300)}` }; }
 
-    // Normalize rows to our shape
     let rows = [];
     if (Array.isArray(data)) {
       if (data.length && !Array.isArray(data[0])) {
@@ -43,47 +31,26 @@ exports.handler = async function (event) {
           special: r["Special Characteristics"] ?? "",
           float: r.Float ?? "",
           Include: r.Include,
-          Status: r.Status ?? ""
+          Status: r.Status ?? "",
+          image: r.Image ?? r["Image URL"] ?? r.image ?? ""   // Column H (Image)
         }));
       } else {
-        // Array of arrays (fallback if ever needed)
+        // Fallback for array-of-arrays if ever used (A..H)
         rows = data.map((row) => ({
           purchaseDate: row[0],
           name: row[1],
           special: row[2],
           float: row[3],
           Include: row[5],
-          Status: row[6]
+          Status: row[6],
+          image: row[7] || ""                                  // Column H
         }));
       }
     }
 
-    // EXACT FILTER: Column F (Include) must be true AND Column G (Status) must be blank
+    // EXACT FILTER
     const visible = rows.filter((r) => isTrueBool(r.Include) && isBlank(r.Status));
 
-    // Debug view
     if (event?.queryStringParameters?.debug === "1") {
       return {
         statusCode: 200,
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          rawCount: Array.isArray(data) ? data.length : 0,
-          normalizedCount: rows.length,
-          visibleCount: visible.length,
-          normalizedSample: rows.slice(0, 5),
-          firstVisibleSample: visible.slice(0, 5)
-        })
-      };
-    }
-
-    // Return visible rows to the frontend
-    return {
-      statusCode: 200,
-      headers: { "content-type": "application/json", "cache-control": "no-store" },
-      body: JSON.stringify(visible)
-    };
-  } catch (e) {
-    // Bubble helpful error
-    return { statusCode: 500, body: `Fetch failed: ${String(e)}` };
-  }
-};
