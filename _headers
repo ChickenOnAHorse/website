@@ -1,4 +1,4 @@
 /*
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://script.google.com https://*.googleusercontent.com; img-src 'self' data: https://community.akamai.steamstatic.com https://community.cloudflare.steamstatic.com https://steamcommunity-a.akamaihd.net https://steamuserimages-a.akamaihd.net https://cdn.akamai.steamstatic.com; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none';
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://script.google.com https://*.googleusercontent.com; img-src 'self' data: https:; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none';
   Permissions-Policy: interest-cohort=()
   Cross-Origin-Resource-Policy: same-site
