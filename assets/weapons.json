@@ -4,7 +4,7 @@
   "hotspots": {
     "gold": [
       { "id": "1",  "title": "Glock-18 | Death Rattle 1x NiP K14 Holo",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "2",  "title": "Dual Berettas | Panther 4x Complexity K14 Paper",  "x": 33.3, "y": 28.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "2",  "title": "Dual Berettas | Panther 4x Complexity K14 Paper",  "x": 33.3, "y": 28.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/dualies.png" },
       { "id": "3",  "title": "P250 | Steel Disruption 4x Complexity K14 Holo",  "x": 33.3, "y": 45.6, "w": 10.1, "h": 16.1, "image": "assets/weapons/p250.png" },
       { "id": "4",  "title": "Tec-9 | Terrace 4x VP Atlanta Holo ",  "x": 33.3, "y": 62.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "5",  "title": "Desert Eagle | Blaze 1x HR K14 Holo",  "x": 33.3, "y": 80.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/deagle.png" },
@@ -42,6 +42,7 @@
     ]
   }
 }
+
 
 
 
