@@ -61,15 +61,19 @@
     <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
 
     <div class="loadout-wrap">
-      <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
-        <!-- Set an explicit initial src so the image always appears -->
-        <img id="loadoutImage" class="loadout-img" src="assets/loadout-blue.png" alt="CS2 loadout view" />
-        <div id="hoverBand" aria-hidden="true"></div>
-        <div class="hint">
-          Click the <strong>right</strong> gold band to view the gold loadout, or the <strong>left</strong> blue band to return.
-        </div>
-      </div>
+  <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
+    <!-- NEW: wrap image + hover band so band height matches image exactly -->
+    <div class="img-wrap" id="imgWrap">
+      <img id="loadoutImage" class="loadout-img" src="assets/loadout-blue.png" alt="CS2 loadout view" />
+      <div id="hoverBand" aria-hidden="true"></div>
     </div>
+
+    <div class="hint">
+      Click the <strong>right</strong> gold band to view the gold loadout, or the <strong>left</strong> blue band to return.
+    </div>
+  </div>
+</div>
+
   </main>
 
   <footer class="site-footer">
@@ -89,3 +93,4 @@
   </noscript>
 </body>
 </html>
+
