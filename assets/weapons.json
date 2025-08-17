@@ -16,7 +16,7 @@
       { "id": "10", "title": "MAC-10 | Heat 4x Fnatic K14 Paper", "x": 44.9, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
 
       { "id": "11", "title": "AK-47 | Neon Revolution 4x 3DMAX K14 Holo", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "12", "title": "SG 553 | Bulldozer 4x Navi K14 Paper", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "12", "title": "SG 553 | Bulldozer 4x Navi K14 Paper", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/sg.png" },
       { "id": "13", "title": "Galil AR | Aqua Terrace", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weaponsUntitled2.png" },
       { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
@@ -35,13 +35,14 @@
       { "id": "10", "title": "MP9 | Airlock 4x Dignitas K14 Paper", "x": 45.2, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
 
       { "id": "11", "title": "M4A4 | Howl 1x iBP K14 Holo", "x": 56.9, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/m4a4.png" },
-      { "id": "12", "title": "M4A1-S | Welcome to the Jungle 4x Vox K14 Paper", "x": 56.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "12", "title": "M4A1-S | Welcome to the Jungle 4x Vox K14 Paper", "x": 56.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/m4a1-s.png" },
       { "id": "13", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ]
   }
 }
+
 
 
 
