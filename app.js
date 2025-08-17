@@ -1,3 +1,4 @@
+// ===== DOM ELEMENTS =====
 const grid = document.getElementById('grid');
 const statusEl = document.getElementById('status');
 const searchInput = document.getElementById('search');
@@ -18,6 +19,35 @@ const lightboxClose = document.getElementById('lightbox-close');
 
 document.getElementById('year').textContent = new Date().getFullYear();
 
+// ===== THEME TOGGLE (persists in localStorage) =====
+(function(){
+  const root = document.documentElement;
+  const btn  = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('coah-theme');
+
+  // default to dark; honor saved choice
+  if (saved === 'light') root.setAttribute('data-theme','light');
+
+  const applyIcon = () => {
+    const light = root.getAttribute('data-theme') === 'light';
+    if (btn) btn.textContent = light ? '☀︎' : '☾';
+  };
+  applyIcon();
+
+  btn?.addEventListener('click', () => {
+    const light = root.getAttribute('data-theme') === 'light';
+    if (light) {
+      root.removeAttribute('data-theme');       // dark
+      localStorage.setItem('coah-theme','dark');
+    } else {
+      root.setAttribute('data-theme','light');  // light
+      localStorage.setItem('coah-theme','light');
+    }
+    applyIcon();
+  });
+})();
+
+// ===== CONSTANTS =====
 const MS_HOUR = 60 * 60 * 1000;
 const MS_DAY  = 24 * MS_HOUR;
 
@@ -70,6 +100,7 @@ function getCategory(name) {
 
 let ALL_ITEMS = [];
 
+// ===== DATA LOAD =====
 async function loadItems() {
   try {
     statusEl.textContent = 'Loading inventory…';
@@ -102,6 +133,7 @@ async function loadItems() {
   }
 }
 
+// ===== FILTER / SORT / SEARCH PIPE =====
 function applyAndRender() {
   const now = Date.now();
   const q = (searchInput?.value || '').trim().toLowerCase();
@@ -127,6 +159,7 @@ function applyAndRender() {
   render(list);
 }
 
+// ===== RENDER =====
 async function render(items) {
   const now = Date.now();
   const tpl = document.getElementById('card-tpl');
@@ -207,7 +240,7 @@ async function render(items) {
   }
 }
 
-/* Lightbox helpers */
+// ===== LIGHTBOX HELPERS =====
 function openLightbox(src, alt) {
   lightboxImg.src = src;
   lightboxImg.alt = alt || 'Image preview';
@@ -221,15 +254,19 @@ function closeLightbox() {
   document.removeEventListener('keydown', escToClose);
 }
 function escToClose(e){ if (e.key === 'Escape') closeLightbox(); }
-
 lightboxClose.addEventListener('click', closeLightbox);
 lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
 
-// wiring
+// ===== WIRING =====
 function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 const runSearch = debounce(() => applyAndRender(), 150);
 searchInput?.addEventListener('input', runSearch);
-window.addEventListener('keydown', (e) => { if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); } });
+window.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault(); searchInput.focus();
+  }
+});
 [cbKnives, cbGloves, cbWeapons, cbOther, sortSel, onlyUnlocked].forEach(el => el?.addEventListener('change', applyAndRender));
 
+// ===== GO =====
 loadItems();
