@@ -18,14 +18,32 @@
       user-select:none;
     }
     .loadout img{
-      width:100%; height:auto; display:block; border-radius:.6rem; box-shadow:0 8px 30px rgba(0,0,0,.35);
+      width:100%; height:auto; display:block;
+      border-radius:.6rem; box-shadow:0 8px 30px rgba(0,0,0,.35);
+      transition: opacity .28s ease;
+      opacity:1;
     }
+    .loadout img.is-fading{ opacity:0; }
+
     .loadout .hint{
       text-align:center; color:var(--muted); margin-top:.75rem;
       font-size:.9rem;
     }
-    /* Invisible canvas for color sampling (kept off-screen) */
-    #samplerCanvas{ position:absolute; left:-99999px; top:-99999px; }
+
+    /* (Optional) dev helper to visualize clickable regions—toggle by adding .show-zones on .loadout */
+    .loadout.show-zones::before,
+    .loadout.show-zones::after{
+      content:"";
+      position:absolute; inset:0; pointer-events:none;
+    }
+    /* right band (blue->gold cutoff) */
+    .loadout.show-zones[data-state="blue"]::after{
+      left:78%; width:22%; background:rgba(255,215,0,.12);
+    }
+    /* left band (gold->blue cutoff) */
+    .loadout.show-zones[data-state="gold"]::before{
+      left:0; width:22%; background:rgba(30,144,255,.12);
+    }
   </style>
 </head>
 <body>
@@ -49,15 +67,14 @@
     <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
 
     <div class="loadout-wrap">
-      <div class="loadout" id="loadout">
+      <div class="loadout" id="loadout" data-state="blue">
         <!-- Start with the mostly BLUE image -->
         <img id="loadoutImg" src="assets/loadout-blue.png" alt="CS2 loadout view" loading="eager" />
-        <div class="hint">Tip: click the <strong>gold</strong> region to switch to the gold view, or the <strong>blue</strong> region to switch back.</div>
+        <div class="hint">
+          Click the <strong>gold</strong> band (right side) to switch to gold view, or the <strong>blue</strong> band (left side) to switch back.
+        </div>
       </div>
     </div>
-
-    <!-- hidden canvas for pixel sampling -->
-    <canvas id="samplerCanvas" width="64" height="64" aria-hidden="true"></canvas>
   </main>
 
   <footer class="site-footer">
@@ -73,83 +90,83 @@
     const BLUE_SRC = 'assets/loadout-blue.png';
     const GOLD_SRC = 'assets/loadout-gold.png';
 
-    // --- Helpers: color conversion & classification ---
-    function rgbToHsv(r,g,b){
-      r/=255; g/=255; b/=255;
-      const max = Math.max(r,g,b), min = Math.min(r,g,b);
-      let h, s, v = max;
-      const d = max - min;
-      s = max === 0 ? 0 : d / max;
-      if (d === 0) h = 0;
-      else {
-        switch(max){
-          case r: h = (g-b)/d + (g<b?6:0); break;
-          case g: h = (b-r)/d + 2; break;
-          case b: h = (r-g)/d + 4; break;
-        }
-        h *= 60;
-      }
-      return {h,s,v};
+    // --- Region cutoffs (fractions of width) ---
+    // When blue is showing, clicks in the RIGHT 22% flip to gold:
+    const BLUE_TO_GOLD_RIGHT_BAND = 0.22;   // adjust if needed
+    // When gold is showing, clicks in the LEFT 22% flip to blue:
+    const GOLD_TO_BLUE_LEFT_BAND  = 0.22;   // adjust if needed
+
+    // Preload the alternate image for a snappy swap
+    const preload = new Image(); preload.src = GOLD_SRC;
+
+    const container = document.getElementById('loadout');
+    const img = document.getElementById('loadoutImg');
+
+    let isTransitioning = false;
+
+    function swap(to){
+      if (isTransitioning) return;
+      const current = container.dataset.state;
+      if (to === current) return;
+      isTransitioning = true;
+
+      // fade out
+      img.classList.add('is-fading');
+
+      // after fade-out, swap src, then fade in on load
+      const doSwap = () => {
+        img.removeEventListener('transitionend', doSwap);
+        img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
+        container.dataset.state = to;
+
+        // Wait for the image to load before fading back in
+        const onLoad = () => {
+          img.removeEventListener('load', onLoad);
+          // let the browser apply layout, then fade in
+          requestAnimationFrame(() => {
+            img.classList.remove('is-fading');
+            // unlock after fade-in finishes
+            img.addEventListener('transitionend', function endIn(){
+              img.removeEventListener('transitionend', endIn);
+              isTransitioning = false;
+            }, { once:true });
+          });
+        };
+        img.addEventListener('load', onLoad, { once:true });
+      };
+      img.addEventListener('transitionend', doSwap);
     }
 
-    // Heuristics tuned for your screenshots:
-    // - "Gold": warm hue ~35–65°, reasonably saturated/bright
-    // - "Blue": hue ~200–250°, reasonably saturated/bright
-    function classifyColor([r,g,b,a]){
-      if (a === 0) return 'none';
-      const {h,s,v} = rgbToHsv(r,g,b);
-      if (s > 0.3 && v > 0.25) {
-        if (h >= 35 && h <= 65) return 'gold';
-        if (h >= 200 && h <= 250) return 'blue';
-      }
-      return 'other';
-    }
+    // Click handler using relative X position
+    img.addEventListener('click', (e) => {
+      if (isTransitioning) return;
+      const rect = img.getBoundingClientRect();
+      const xRel = (e.clientX - rect.left) / rect.width; // 0..1
+      const state = container.dataset.state;
 
-    // --- Wiring: when you click the image, sample the pixel under cursor ---
-    (function(){
-      const img = document.getElementById('loadoutImg');
-      const canvas = document.getElementById('samplerCanvas');
-      const ctx = canvas.getContext('2d');
-      // Ensure high quality sampling by drawing the *natural* image size to canvas
-      let natW = 0, natH = 0;
-
-      function drawToCanvas() {
-        if (!img.complete || !img.naturalWidth) return;
-        natW = img.naturalWidth; natH = img.naturalHeight;
-        canvas.width = natW; canvas.height = natH;
-        ctx.clearRect(0,0,natW,natH);
-        ctx.drawImage(img, 0, 0, natW, natH);
-      }
-
-      img.addEventListener('load', drawToCanvas);
-      if (img.complete) drawToCanvas();
-
-      // Map click from displayed size to natural image coordinates
-      img.addEventListener('click', (e) => {
-        const rect = img.getBoundingClientRect();
-        const xRel = (e.clientX - rect.left) / rect.width;
-        const yRel = (e.clientY - rect.top) / rect.height;
-        const x = Math.max(0, Math.min(natW - 1, Math.round(xRel * natW)));
-        const y = Math.max(0, Math.min(natH - 1, Math.round(yRel * natH)));
-
-        try {
-          const pixel = ctx.getImageData(x, y, 1, 1).data; // [r,g,b,a]
-          const cls = classifyColor(pixel);
-
-          // Behavior:
-          // - Click GOLD → switch to gold image
-          // - Click BLUE → switch to blue image
-          if (cls === 'gold' && img.src.indexOf(GOLD_SRC) === -1) {
-            img.src = GOLD_SRC;
-          } else if (cls === 'blue' && img.src.indexOf(BLUE_SRC) === -1) {
-            img.src = BLUE_SRC;
-          }
-        } catch (err) {
-          // Cross-origin or off-canvas error; do nothing
-          console.warn('Sampling failed:', err);
+      if (state === 'blue') {
+        // Click near the RIGHT edge switches to gold
+        if (xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
+          swap('gold');
         }
-      });
-    })();
+      } else {
+        // state === 'gold': Click near the LEFT edge switches to blue
+        if (xRel <= GOLD_TO_BLUE_LEFT_BAND) {
+          swap('blue');
+        }
+      }
+    });
+
+    // Optional: keyboard toggle (spacebar)
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        swap(container.dataset.state === 'blue' ? 'gold' : 'blue');
+      }
+    });
+
+    // If you want to visualize click zones for tuning, uncomment:
+    // container.classList.add('show-zones');
   </script>
 </body>
 </html>
