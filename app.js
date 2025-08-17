@@ -11,6 +11,11 @@ const cbOther  = document.getElementById('cat-other');
 const sortSel  = document.getElementById('sort');
 const onlyUnlocked = document.getElementById('only-unlocked');
 
+// lightbox
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const lightboxClose = document.getElementById('lightbox-close');
+
 document.getElementById('year').textContent = new Date().getFullYear();
 
 const MS_HOUR = 60 * 60 * 1000;
@@ -117,7 +122,6 @@ function applyAndRender() {
     return sortSel.value === 'oldest' ? at - bt : bt - at;
   });
 
-  // NEW: update the live count
   if (countEl) countEl.textContent = `Showing ${list.length} item${list.length === 1 ? '' : 's'}`;
 
   render(list);
@@ -162,33 +166,12 @@ async function render(items) {
       } catch { /* keep chicken */ }
     }
 
-    // NEW: hook up zoom button/pane
+    // Lightbox open on zoom button
     const thumbWrap = card.querySelector('.thumb-wrap');
     const zoomBtn   = thumbWrap.querySelector('.zoom-btn');
-    const zoomPane  = thumbWrap.querySelector('.zoom-pane');
-    const zoomImg   = thumbWrap.querySelector('.zoom-img');
-
     zoomBtn.addEventListener('click', () => {
-      // use the currently displayed image URL
       const fullSrc = img.currentSrc || img.src;
-      zoomImg.src = fullSrc;
-      zoomImg.alt = row.name;
-      zoomPane.classList.add('open');
-      zoomPane.setAttribute('aria-hidden', 'false');
-    });
-    // close on click outside image
-    zoomPane.addEventListener('click', (e) => {
-      if (e.target === zoomPane) {
-        zoomPane.classList.remove('open');
-        zoomPane.setAttribute('aria-hidden', 'true');
-      }
-    });
-    // close on ESC
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && zoomPane.classList.contains('open')) {
-        zoomPane.classList.remove('open');
-        zoomPane.setAttribute('aria-hidden', 'true');
-      }
+      openLightbox(fullSrc, row.name);
     });
 
     // Status + Available on
@@ -217,15 +200,30 @@ async function render(items) {
     card.querySelector('.float').textContent = (row.float ?? '').toString();
     const spec = (row.special ?? '').toString().trim();
     const specialWrap = card.querySelector('.special-wrap');
-    if (spec) {
-      card.querySelector('.special').textContent = spec;
-    } else {
-      specialWrap.remove();
-    }
+    if (spec) { card.querySelector('.special').textContent = spec; }
+    else { specialWrap.remove(); }
 
     grid.appendChild(card);
   }
 }
+
+/* Lightbox helpers */
+function openLightbox(src, alt) {
+  lightboxImg.src = src;
+  lightboxImg.alt = alt || 'Image preview';
+  lightbox.classList.remove('hidden');
+  document.addEventListener('keydown', escToClose);
+}
+function closeLightbox() {
+  lightbox.classList.add('hidden');
+  lightboxImg.src = '';
+  lightboxImg.alt = '';
+  document.removeEventListener('keydown', escToClose);
+}
+function escToClose(e){ if (e.key === 'Escape') closeLightbox(); }
+
+lightboxClose.addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
 
 // wiring
 function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
