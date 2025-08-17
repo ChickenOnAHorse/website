@@ -30,7 +30,7 @@
       font-size:.9rem;
     }
 
-    /* Hover stripe overlay (visual cue). We draw it with JS by setting left/width */
+    /* Hover stripe overlay (visual cue). JS sets left/width */
     #hoverBand{
       position:absolute; top:0; height:100%;
       background:linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
@@ -61,9 +61,9 @@
     <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
 
     <div class="loadout-wrap">
-      <div class="loadout" id="loadout" data-state="blue">
-        <!-- Start on blue; JS will resolve the exact asset path -->
-        <img id="loadoutImage" class="loadout-img" src="" alt="CS2 loadout view" />
+      <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
+        <!-- Set an explicit initial src so the image always appears -->
+        <img id="loadoutImage" class="loadout-img" src="assets/loadout-blue.png" alt="CS2 loadout view" />
         <div id="hoverBand" aria-hidden="true"></div>
         <div class="hint">
           Click the <strong>right</strong> gold band to view the gold loadout, or the <strong>left</strong> blue band to return.
@@ -79,122 +79,13 @@
     </div>
   </footer>
 
+  <!-- Keep your global app.js -->
   <script src="app.js" defer></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // ---- Candidate paths (kept in /assets). If you use different names, edit here. ----
-      const CANDIDATES = {
-        blue: ['assets/loadout-blue.png', 'assets/blue-loadout.png'],
-        gold: ['assets/loadout-gold.png', 'assets/gold-loadout.png']
-      };
+  <!-- New page-specific script -->
+  <script src="collection.js" defer></script>
 
-      const loadout = document.getElementById('loadout');
-      const img = document.getElementById('loadoutImage');
-      const band = document.getElementById('hoverBand');
-
-      const RIGHT_BAND = 0.22; // right 22% (blue -> gold)
-      const LEFT_BAND  = 0.22; // left 22%  (gold -> blue)
-
-      // Resolve which filenames exist (first that loads wins)
-      function pickExisting(srcs) {
-        return new Promise(resolve => {
-          let idx = 0;
-          const tryNext = () => {
-            if (idx >= srcs.length) return resolve(null);
-            const test = new Image();
-            const path = srcs[idx++];
-            test.onload = () => resolve(path);
-            test.onerror = tryNext;
-            test.src = path + '?v=' + Date.now(); // bust cache to detect 404s reliably
-          };
-          tryNext();
-        });
-      }
-
-      (async function init(){
-        const blueSrc = await pickExisting(CANDIDATES.blue);
-        const goldSrc = await pickExisting(CANDIDATES.gold);
-
-        if (!blueSrc || !goldSrc) {
-          console.error('Could not resolve loadout image paths. Check assets/ filenames.');
-          // Show something at least:
-          img.alt = 'Loadout image missing';
-          return;
-        }
-
-        // Preload both
-        [blueSrc, goldSrc].forEach(s => { const i = new Image(); i.src = s; });
-
-        // Set initial image (blue)
-        img.src = blueSrc;
-
-        let isBlue = true;
-
-        function swap(toGold){
-          if (toGold === isBlue) return;
-          isBlue = !isBlue;
-          loadout.dataset.state = isBlue ? 'blue' : 'gold';
-          // fade out -> swap -> fade in
-          img.classList.add('fade-out');
-          const nextSrc = isBlue ? blueSrc : goldSrc;
-          // After the fade-out, swap src and fade back in when it finishes loading
-          setTimeout(() => {
-            img.onload = () => {
-              requestAnimationFrame(() => img.classList.remove('fade-out'));
-            };
-            img.src = nextSrc;
-          }, 180);
-        }
-
-        // Click anywhere in the container
-        loadout.addEventListener('click', (e) => {
-          const rect = loadout.getBoundingClientRect();
-          const xRel = (e.clientX - rect.left) / rect.width; // 0..1
-
-          if (isBlue && xRel >= 1 - RIGHT_BAND) {
-            swap(true);  // blue -> gold
-          } else if (!isBlue && xRel <= LEFT_BAND) {
-            swap(false); // gold -> blue
-          }
-        });
-
-        // Hover band + pointer cursor
-        loadout.addEventListener('mousemove', (e) => {
-          const rect = loadout.getBoundingClientRect();
-          const xRel = (e.clientX - rect.left) / rect.width;
-          let show = false;
-
-          if (isBlue && xRel >= 1 - RIGHT_BAND) {
-            // right stripe
-            band.style.display = 'block';
-            band.style.left = (rect.width * (1 - RIGHT_BAND)) + 'px';
-            band.style.width = (rect.width * RIGHT_BAND) + 'px';
-            show = true;
-          } else if (!isBlue && xRel <= LEFT_BAND) {
-            // left stripe
-            band.style.display = 'block';
-            band.style.left = '0px';
-            band.style.width = (rect.width * LEFT_BAND) + 'px';
-            show = true;
-          } else {
-            band.style.display = 'none';
-          }
-          loadout.style.cursor = show ? 'pointer' : 'default';
-        });
-        loadout.addEventListener('mouseleave', () => {
-          band.style.display = 'none';
-          loadout.style.cursor = 'default';
-        });
-
-        // Spacebar toggles for accessibility/testing
-        document.addEventListener('keydown', (e) => {
-          if (e.code === 'Space') {
-            e.preventDefault();
-            swap(!isBlue);
-          }
-        });
-      })();
-    });
-  </script>
+  <noscript>
+    <style>.hint{display:none}</style>
+  </noscript>
 </body>
 </html>
