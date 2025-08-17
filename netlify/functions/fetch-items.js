@@ -1,4 +1,4 @@
-// Robust filter + debug mode. Works on Netlify Node 18+ (built-in fetch).
+// Uses your object-shaped JSON fields (Date, Item, Include, Status, etc.)
 exports.handler = async function (event) {
   const APPS_SCRIPT_URL =
     process.env.APPS_SCRIPT_URL ||
@@ -6,52 +6,31 @@ exports.handler = async function (event) {
 
   // Helpers
   const isBlank = (v) => v === null || v === undefined || String(v).trim() === "";
-  const isTruthy = (v) => {
-    if (v === true) return true;
-    const s = String(v).trim().toLowerCase();
-    return ["true", "yes", "y", "1", "show", "x"].includes(s);
-  };
+  const isTruthy = (v) => (v === true) || ["true", "yes", "y", "1", "show", "x"].includes(String(v).trim().toLowerCase());
 
   try {
     const upstream = await fetch(APPS_SCRIPT_URL, { headers: { accept: "application/json" } });
     if (!upstream.ok) {
-      return {
-        statusCode: 502,
-        body: JSON.stringify({ error: `Apps Script responded ${upstream.status}` }),
-      };
+      return { statusCode: 502, body: JSON.stringify({ error: `Apps Script responded ${upstream.status}` }) };
     }
     const data = await upstream.json();
 
-    // Normalize: handle array-of-arrays OR array-of-objects
-    const rows = Array.isArray(data) && data.length && Array.isArray(data[0])
-      ? data
-          // drop header row if it looks like one (first row contains strings)
-          .filter((row, i) => !(i === 0 && row.every((c) => typeof c === "string")))
-          .map((row) => ({
-            purchaseDate: row[0],
-            name: row[1],
-            special: row[2],
-            float: row[3],
-            show: row[5],
-            sold: row[6],
-          }))
-      : Array.isArray(data)
-      ? data.map((r) => ({
-          purchaseDate: r.purchaseDate ?? r["Date of Purchase"] ?? r.date ?? r.Date ?? "",
-          name: r.name ?? r["Item Name"] ?? "",
-          special: r.special ?? r["Special Characteristics"] ?? "",
-          float: r.float ?? r["Float Value"] ?? "",
-          show: r.show ?? r["Show"] ?? r["Column F"] ?? "",
-          sold: r.sold ?? r["Sold"] ?? r["Column G"] ?? "",
-        }))
-      : [];
+    // Normalize to our frontend shape
+    const rows = Array.isArray(data) ? data.map((r) => ({
+      purchaseDate: r.Date ?? r.date ?? "",
+      name: r.Item ?? "",
+      special: r["Special Characteristics"] ?? "",
+      float: r.Float ?? "",
+      include: r.Include,                        // boolean
+      status: r.Status ?? "",                    // empty => available
+      tag: r["L or K or CH or S or HT"] ?? ""    // optional extra field
+    })) : [];
 
-    // Filter per your rules: F says show, G is blank = available
-    const visible = rows.filter((r) => isTruthy(r.show) && isBlank(r.sold));
+    // Filter: Include is truthy AND Status is blank
+    const visible = rows.filter((r) => isTruthy(r.include) && isBlank(r.status));
 
-    // Optional debug mode: append ?debug=1 to the function URL to inspect
-    const debug = event?.queryStringParameters?.debug === "1";
-    if (debug) {
+    // Debug view: add ?debug=1 to inspect counts and samples
+    if (event?.queryStringParameters?.debug === "1") {
       return {
         statusCode: 200,
         headers: { "content-type": "application/json" },
@@ -60,15 +39,15 @@ exports.handler = async function (event) {
           normalizedCount: rows.length,
           visibleCount: visible.length,
           normalizedSample: rows.slice(0, 5),
-          firstVisibleSample: visible.slice(0, 5),
-        }),
+          firstVisibleSample: visible.slice(0, 5)
+        })
       };
     }
 
     return {
       statusCode: 200,
       headers: { "content-type": "application/json", "cache-control": "no-store" },
-      body: JSON.stringify(visible),
+      body: JSON.stringify(visible)
     };
   } catch (e) {
     return { statusCode: 500, body: JSON.stringify({ error: "Fetch failed", detail: String(e) }) };
