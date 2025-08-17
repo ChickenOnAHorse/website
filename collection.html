@@ -1,146 +1,132 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Collection</title>
-  <link rel="stylesheet" href="assets/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Collection — Chicken on a Horse</title>
+  <link rel="stylesheet" href="styles.css" />
   <style>
-    body {
-      background-color: #121212;
-      color: #eee;
-      font-family: Arial, sans-serif;
-      text-align: center;
+    /* Page-local styles for the interactive loadout */
+    .loadout-wrap{
+      display:grid; place-items:center;
+      min-height:calc(100vh - 160px);
+      padding:2rem 1rem;
     }
-    .collection-container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      position: relative;
+    .loadout{
+      width:min(1200px, 95vw);
+      position:relative;
+      user-select:none;
     }
-    #collectionImage {
-      width: 100%;
-      max-width: 1000px;
-      border: 3px solid #444;
+    .img-wrap{ position: relative; width: 100%; display:block; }
+    .loadout-img{
+      width:100%; height:auto; display:block;
+      border-radius:.6rem; box-shadow:0 8px 30px rgba(0,0,0,.35);
+      transition: opacity .35s ease;
+      opacity:1;
     }
+    .fade-out{ opacity:0; }
+
+    /* Hover stripe for blue<->gold swap (sits exactly over the image area) */
+    #hoverBand{
+      position:absolute; top:0; bottom:0; left:0; width:0;
+      background:linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
+      border-radius:.6rem;
+      pointer-events:none;
+      display:none;
+      z-index: 3;
+    }
+
+    /* Hotspots layer (boxes rendered by collection.js) */
+    #hotspots { position:absolute; inset:0; z-index:2; }
     .hotspot {
-      position: absolute;
-      border: 2px solid rgba(255,255,0,0.5);
-      background: rgba(255,255,0,0.15);
-      cursor: pointer;
-      transition: background 0.3s;
+      position:absolute; border-radius:.35rem; cursor:pointer;
+      box-shadow: 0 0 0 0 rgba(96,165,250,0);
+      transition: box-shadow .15s ease, background-color .15s ease;
+      background-color: transparent;
     }
-    .hotspot:hover {
-      background: rgba(255,255,0,0.3);
+    .hotspot:hover { box-shadow: 0 0 0 2px rgba(96,165,250,.65); background-color: rgba(96,165,250,.08); }
+    .hotspot .label{
+      position:absolute; bottom:4px; left:6px; font-size:.8rem; color:#e5e7eb;
+      background:rgba(0,0,0,.45); padding:.1rem .35rem; border-radius:.3rem; pointer-events:none;
     }
-    /* Modal */
-    #weaponModal {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      padding-top: 80px;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      overflow: auto;
-      background: rgba(0,0,0,0.85);
+
+    .hint{ text-align:center; color:var(--muted); margin-top:.75rem; font-size:.9rem; }
+
+    /* Weapon modal */
+    .modal.hidden { display:none; }
+    .modal{
+      position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.85);
+      display:flex; align-items:center; justify-content:center; padding:2rem;
     }
-    #weaponModalContent {
-      background: #1e1e1e;
-      margin: auto;
-      padding: 20px;
-      border: 1px solid #666;
-      width: 80%;
-      max-width: 600px;
-      border-radius: 8px;
+    .modal-inner{ position:relative; max-width:min(90vw, 900px); max-height:80vh; display:flex; flex-direction:column; gap:.75rem; }
+    .modal-header{ display:flex; justify-content:space-between; align-items:center; color:#e5e7eb; }
+    .modal-title{ margin:0; font-size:1.1rem; }
+    .modal-close{
+      border:1px solid var(--border); background:rgba(255,255,255,.12);
+      color:#fff; border-radius:.5rem; padding:.25rem .6rem; cursor:pointer;
     }
-    #weaponModalContent img {
-      max-width: 100%;
-      border-radius: 6px;
-    }
-    #weaponModalContent h2 {
-      margin-bottom: 1rem;
-      color: #ffd700;
-    }
-    #weaponModalClose {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #weaponModalClose:hover {
-      color: white;
-    }
+    .modal-close:hover{ background:rgba(255,255,255,.22) }
+    .modal-img{ width:100%; height:auto; object-fit:contain; border-radius:.5rem; background:#0b1321; box-shadow:0 8px 30px rgba(0,0,0,.35); }
   </style>
 </head>
 <body>
-  <div class="collection-container">
-    <img id="collectionImage" src="assets/gold_loadout.png" alt="Collection Loadout">
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- Hotspots injected here -->
-    <div id="hotspotContainer"></div>
-  </div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <nav class="top-nav" aria-label="Primary">
+        <a href="index.html" class="logo" aria-label="Home">🐔🐴</a>
+        <div class="nav-links">
+          <a href="collection.html" class="nav-link active">My Collection</a>
+          <a href="index.html" class="nav-link">Skins for Sale/Trade</a>
+          <a href="about.html" class="nav-link">About</a>
+          <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        </div>
+      </nav>
+    </div>
+  </header>
 
-  <!-- Modal -->
-  <div id="weaponModal">
-    <div id="weaponModalContent">
-      <span id="weaponModalClose">&times;</span>
-      <h2 id="weaponName"></h2>
-      <img id="weaponImage" src="" alt="Weapon Image">
+  <main id="main" class="container section">
+    <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
+
+    <div class="loadout-wrap">
+      <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
+        <div class="img-wrap" id="imgWrap">
+          <!-- ✅ correct image path & filename -->
+          <img id="loadoutImage" class="loadout-img" src="assets/loadout-blue.png" alt="CS2 loadout view" />
+          <div id="hoverBand" aria-hidden="true"></div>
+          <div id="hotspots" aria-hidden="false"></div>
+        </div>
+
+        <div class="hint">
+          Click the <strong>right 28.06%</strong> to view the gold loadout, or the <strong>left 28.06%</strong> to return.
+          Hover squares to preview; click to see the weapon.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Weapon modal -->
+  <div id="weaponModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="weaponTitle">
+    <div class="modal-inner">
+      <div class="modal-header">
+        <h3 class="modal-title" id="weaponTitle"></h3>
+        <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      </div>
+      <img id="weaponImg" class="modal-img" alt="">
     </div>
   </div>
 
-  <script>
-    // Example hotspots for gold and blue images
-    const hotspots = {
-      gold: [
-        { name: "AK-47", x: 10, y: 20, w: 15, h: 10, img: "assets/weapons/ak47.png" },
-        { name: "AWP", x: 30, y: 40, w: 15, h: 10, img: "assets/weapons/awp.png" },
-        { name: "Desert Eagle", x: 55, y: 60, w: 15, h: 10, img: "assets/weapons/deagle.png" }
-      ],
-      blue: [
-        { name: "M4A4", x: 10, y: 20, w: 15, h: 10, img: "assets/weapons/m4a4.png" },
-        { name: "Glock-18", x: 35, y: 50, w: 15, h: 10, img: "assets/weapons/glock.png" },
-        { name: "Knife", x: 65, y: 70, w: 15, h: 10, img: "assets/weapons/knife.png" }
-      ]
-    };
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> Chicken on a Horse</p>
+      <a href="#top" class="back-to-top">Back to top ↑</a>
+    </div>
+  </footer>
 
-    let currentSide = "gold";
-
-    const container = document.querySelector('.collection-container');
-    const image = document.getElementById('collectionImage');
-    const hotspotContainer = document.getElementById('hotspotContainer');
-
-    // Modal
-    const modal = document.getElementById("weaponModal");
-    const modalClose = document.getElementById("weaponModalClose");
-    const weaponName = document.getElementById("weaponName");
-    const weaponImage = document.getElementById("weaponImage");
-
-    modalClose.onclick = () => modal.style.display = "none";
-    window.onclick = e => { if (e.target == modal) modal.style.display = "none"; }
-
-    function renderHotspots() {
-      hotspotContainer.innerHTML = "";
-      const list = hotspots[currentSide];
-      list.forEach(h => {
-        const box = document.createElement("div");
-        box.className = "hotspot";
-        box.style.left = h.x + "%";
-        box.style.top = h.y + "%";
-        box.style.width = h.w + "%";
-        box.style.height = h.h + "%";
-
-        box.onclick = () => {
-          weaponName.textContent = h.name;
-          weaponImage.src = h.img;
-          modal.style.display = "block";
-        };
-
-        hotspotContainer.appendChild(box);
-      });
-    }
-
-    renderHotspots();
-  </script>
+  <!-- External JS (no inline scripts; CSP-safe) -->
+  <script src="app.js" defer></script>
+  <!-- If you saved collection.js in assets/, change to src="assets/collection.js" -->
+  <script src="collection.js" defer></script>
 </body>
 </html>
