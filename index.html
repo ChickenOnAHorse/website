@@ -15,7 +15,7 @@
       <div class="brand">🐔🐎 <span>Chicken on a Horse</span></div>
       <nav class="nav" aria-label="Primary">
         <ul class="nav-menu">
-          <li><a href="#available">Available</a></li>
+          <li><a href="#available">Skins for Sale/Trade</a></li>
           <li><a href="#about">About</a></li>
         </ul>
       </nav>
@@ -29,7 +29,14 @@
     </section>
 
     <section id="available" class="section container">
-      <h2>Available Skins</h2>
+      <div class="section-head">
+        <h2>Skins for Sale/Trade</h2>
+        <label class="search-wrap" for="search">
+          <input id="search" type="search" placeholder="Search by title…" autocomplete="off" />
+          <span class="kbd">/</span>
+        </label>
+      </div>
+
       <div id="grid" class="grid" role="list" aria-busy="true" aria-live="polite"></div>
 
       <template id="card-tpl">
@@ -45,7 +52,7 @@
               <dt>Status</dt>
               <dd class="status-line"></dd>
             </div>
-            <div>
+            <div class="available-wrap">
               <dt>Available on</dt>
               <dd class="available-date"></dd>
             </div>
