@@ -38,6 +38,30 @@
       pointer-events:none; /* never blocks clicks */
       display:none;
     }
+    /* Ensure the band sits exactly over the image area */
+.img-wrap{
+  position: relative;
+  width: 100%;
+  display: block;
+}
+.img-wrap .loadout-img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+
+/* Hover stripe overlay (now inside .img-wrap so it never extends past image) */
+#hoverBand{
+  position:absolute;
+  top:0; bottom:0;           /* stretches from top to bottom of the image only */
+  left:0;                    /* JS will set left/width each frame */
+  width:0;                   /* JS sets width */
+  background:linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
+  border-radius:.6rem;
+  pointer-events:none;
+  display:none;
+}
+
   </style>
 </head>
 <body>
@@ -93,4 +117,5 @@
   </noscript>
 </body>
 </html>
+
 
