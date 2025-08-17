@@ -1,6 +1,7 @@
 const grid = document.getElementById('grid');
 const statusEl = document.getElementById('status');
 const searchInput = document.getElementById('search');
+const countEl = document.getElementById('count');
 
 // filter controls
 const cbKnives = document.getElementById('cat-knives');
@@ -24,7 +25,6 @@ const GLOVE_WORDS = [
   'gloves','hand wraps','driver gloves','specialist gloves','sport gloves','hydra gloves',
   'bloodhound gloves','moto gloves','broken fang gloves'
 ];
-// Common CS2 weapons
 const WEAPONS = [
   'ak-47','m4a4','m4a1-s','awp','ssg 08','aug','famas','galil ar','sg 553',
   'glock-18','usp-s','p2000','p250','five-seveN','tec-9','cz75-auto','dual berettas','desert eagle','r8 revolver','zeus x27',
@@ -47,7 +47,7 @@ function unlockAtMidnightPST(purchaseDate) {
   return new Date(midnightPST_utcMs + 8 * MS_DAY);
 }
 
-/** e.g. "6 days 3 hours" (with a space) */
+/** e.g. "6 days 3 hours" */
 function formatDaysHours(ms) {
   if (ms <= 0) return '0 days 0 hours';
   const days = Math.floor(ms / MS_DAY);
@@ -57,12 +57,9 @@ function formatDaysHours(ms) {
 
 function getCategory(name) {
   const n = name.toLowerCase();
-  // knives first
   if (KNIFE_WORDS.some(w => n.includes(w))) return 'Knives';
-  // gloves
   if (GLOVE_WORDS.some(w => n.includes(w))) return 'Gloves';
-  // weapons (exact-ish token match)
-  if (WEAPONS.some(w => n.includes(w))) return 'Weapons';
+  if (WEAPONS.some(w => n.includes(w)))   return 'Weapons';
   return 'Other';
 }
 
@@ -87,7 +84,7 @@ async function loadItems() {
         const category = name ? getCategory(name) : 'Other';
         return { ...r, name, purchasedAt, unlockAt, category };
       })
-      .filter((r) => r.name); // no empty cards
+      .filter((r) => r.name);
 
     ALL_ITEMS = items;
     applyAndRender();
@@ -104,7 +101,6 @@ function applyAndRender() {
   const now = Date.now();
   const q = (searchInput?.value || '').trim().toLowerCase();
 
-  // category filter
   const cats = new Set();
   if (cbKnives.checked)  cats.add('Knives');
   if (cbGloves.checked)  cats.add('Gloves');
@@ -112,21 +108,17 @@ function applyAndRender() {
   if (cbOther.checked)   cats.add('Other');
 
   let list = ALL_ITEMS.filter(i => cats.has(i.category));
-
-  // search (by title)
   if (q) list = list.filter(i => i.name.toLowerCase().includes(q));
+  if (onlyUnlocked.checked) list = list.filter(i => i.unlockAt && i.unlockAt.getTime() <= now);
 
-  // only unlocked
-  if (onlyUnlocked.checked) {
-    list = list.filter(i => i.unlockAt && i.unlockAt.getTime() <= now);
-  }
-
-  // sort
   list.sort((a, b) => {
     const at = a.purchasedAt ? a.purchasedAt.getTime() : 0;
     const bt = b.purchasedAt ? b.purchasedAt.getTime() : 0;
-    return sortSel.value === 'oldest' ? at - bt : bt - at; // newest default
+    return sortSel.value === 'oldest' ? at - bt : bt - at;
   });
+
+  // NEW: update the live count
+  if (countEl) countEl.textContent = `Showing ${list.length} item${list.length === 1 ? '' : 's'}`;
 
   render(list);
 }
@@ -150,7 +142,7 @@ async function render(items) {
     // Title
     card.querySelector('.item-name').textContent = row.name;
 
-    // Image priority: sheet-provided URL -> resolver -> chicken
+    // Image priority: Column H -> resolver -> chicken
     const img = card.querySelector('.thumb');
     img.alt = row.name;
     img.src = 'assets/chicken.png';
@@ -170,6 +162,35 @@ async function render(items) {
       } catch { /* keep chicken */ }
     }
 
+    // NEW: hook up zoom button/pane
+    const thumbWrap = card.querySelector('.thumb-wrap');
+    const zoomBtn   = thumbWrap.querySelector('.zoom-btn');
+    const zoomPane  = thumbWrap.querySelector('.zoom-pane');
+    const zoomImg   = thumbWrap.querySelector('.zoom-img');
+
+    zoomBtn.addEventListener('click', () => {
+      // use the currently displayed image URL
+      const fullSrc = img.currentSrc || img.src;
+      zoomImg.src = fullSrc;
+      zoomImg.alt = row.name;
+      zoomPane.classList.add('open');
+      zoomPane.setAttribute('aria-hidden', 'false');
+    });
+    // close on click outside image
+    zoomPane.addEventListener('click', (e) => {
+      if (e.target === zoomPane) {
+        zoomPane.classList.remove('open');
+        zoomPane.setAttribute('aria-hidden', 'true');
+      }
+    });
+    // close on ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && zoomPane.classList.contains('open')) {
+        zoomPane.classList.remove('open');
+        zoomPane.setAttribute('aria-hidden', 'true');
+      }
+    });
+
     // Status + Available on
     const availableWrap = card.querySelector('.available-wrap');
     const availEl = card.querySelector('.available-date');
@@ -177,7 +198,7 @@ async function render(items) {
 
     if (row.unlockAt && row.unlockAt.getTime() <= now) {
       statusLine.textContent = 'Unlocked';
-      availableWrap?.remove(); // remove the "Available on" block entirely
+      availableWrap?.remove();
       const badge = document.createElement('span');
       badge.className = 'badge badge-available';
       badge.textContent = 'Ready';
@@ -211,7 +232,6 @@ function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout
 const runSearch = debounce(() => applyAndRender(), 150);
 searchInput?.addEventListener('input', runSearch);
 window.addEventListener('keydown', (e) => { if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); } });
-
 [cbKnives, cbGloves, cbWeapons, cbOther, sortSel, onlyUnlocked].forEach(el => el?.addEventListener('change', applyAndRender));
 
 loadItems();
