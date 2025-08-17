@@ -6,6 +6,7 @@
   --border:#e5e7eb;
 }
 
+/* Base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -16,6 +17,7 @@ body{
 }
 .container{max-width:1100px;margin:0 auto;padding:0 1rem}
 
+/* Header / hero */
 .site-header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.7);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--border)}
 .header-inner{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:center;height:64px}
 .brand{display:flex;align-items:center;gap:.6rem;font-weight:800}
@@ -26,6 +28,7 @@ body{
 .hero h1{font-size:clamp(2rem,3vw + 1rem,3rem);margin:0 0 .4rem}
 .lead{color:var(--muted)}
 
+/* Section header + filters + search */
 .section{padding:2rem 0}
 .section-head{
   display:grid;
@@ -86,7 +89,7 @@ body{
 .card-head{padding:0.9rem 1rem 0; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;}
 .item-name{margin:0;font-size:1.05rem}
 
-/* IMAGE + zoom */
+/* IMAGE + zoom button */
 .thumb-wrap{
   position:relative;
   border-top:1px solid var(--border);
@@ -105,19 +108,28 @@ body{
   cursor:pointer;
 }
 .zoom-btn:hover{background:rgba(0,0,0,.55)}
-.zoom-pane{
-  position:absolute; inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center; justify-content:center;
-  padding:1rem;
+
+/* Lightbox (global full-screen) */
+.lightbox.hidden{display:none}
+.lightbox{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.8);
+  display:flex; align-items:center; justify-content:center;
+  z-index:2000;
 }
-.zoom-pane.open{display:flex}
-.zoom-img{
-  max-width:100%; max-height:80vh; object-fit:contain;
-  background:#0000;
-  filter: drop-shadow(0 4px 24px rgba(0,0,0,.35));
+.lightbox img{
+  max-width:92vw; max-height:92vh;
+  object-fit:contain;
+  border-radius:8px;
+  box-shadow:0 6px 32px rgba(0,0,0,.5);
 }
+.lightbox-close{
+  position:absolute; top:18px; right:22px;
+  width:40px; height:40px; border-radius:50%;
+  border:none; background:rgba(255,255,255,.2);
+  color:#fff; font-size:28px; line-height:1; cursor:pointer;
+}
+.lightbox-close:hover{background:rgba(255,255,255,.35)}
 
 /* META */
 .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;padding:0 .9rem 1rem;margin:0}
