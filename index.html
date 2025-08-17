@@ -31,6 +31,32 @@
     <section id="available" class="section container">
       <div class="section-head">
         <h2>Skins for Sale/Trade</h2>
+
+        <!-- FILTERS (between title and search) -->
+        <div class="filters" aria-label="Filters">
+          <fieldset class="filter-categories">
+            <legend>Category</legend>
+            <label><input type="checkbox" id="cat-knives" checked> Knives</label>
+            <label><input type="checkbox" id="cat-gloves" checked> Gloves</label>
+            <label><input type="checkbox" id="cat-weapons" checked> Weapons</label>
+            <label><input type="checkbox" id="cat-other" checked> Other</label>
+          </fieldset>
+
+          <div class="filter-sort">
+            <label>
+              <span class="sr-only">Sort</span>
+              <select id="sort">
+                <option value="newest" selected>Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+            </label>
+            <label class="only-unlocked">
+              <input type="checkbox" id="only-unlocked" />
+              Only unlocked
+            </label>
+          </div>
+        </div>
+
         <label class="search-wrap" for="search">
           <input id="search" type="search" placeholder="Search by title…" autocomplete="off" />
           <span class="kbd">/</span>
