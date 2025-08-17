@@ -5,6 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>My Collection — Chicken on a Horse</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Page-local tweaks for the interactive loadout */
+    .loadout-wrap{
+      display:grid; place-items:center;
+      min-height:calc(100vh - 160px);
+      padding:2rem 1rem;
+    }
+    .loadout{
+      width:min(1200px, 95vw);
+      position:relative;
+      user-select:none;
+    }
+    .loadout img{
+      width:100%; height:auto; display:block; border-radius:.6rem; box-shadow:0 8px 30px rgba(0,0,0,.35);
+    }
+    .loadout .hint{
+      text-align:center; color:var(--muted); margin-top:.75rem;
+      font-size:.9rem;
+    }
+    /* Invisible canvas for color sampling (kept off-screen) */
+    #samplerCanvas{ position:absolute; left:-99999px; top:-99999px; }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -24,8 +46,18 @@
   </header>
 
   <main id="main" class="container section">
-    <h1>My Collection</h1>
-    <p class="muted">This is a placeholder page for your personal collection. We can hook this to a second sheet or a tag later.</p>
+    <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
+
+    <div class="loadout-wrap">
+      <div class="loadout" id="loadout">
+        <!-- Start with the mostly BLUE image -->
+        <img id="loadoutImg" src="assets/loadout-blue.png" alt="CS2 loadout view" loading="eager" />
+        <div class="hint">Tip: click the <strong>gold</strong> region to switch to the gold view, or the <strong>blue</strong> region to switch back.</div>
+      </div>
+    </div>
+
+    <!-- hidden canvas for pixel sampling -->
+    <canvas id="samplerCanvas" width="64" height="64" aria-hidden="true"></canvas>
   </main>
 
   <footer class="site-footer">
@@ -36,5 +68,88 @@
   </footer>
 
   <script src="app.js" defer></script>
+  <script>
+    // --- Config: paths to your two images ---
+    const BLUE_SRC = 'assets/loadout-blue.png';
+    const GOLD_SRC = 'assets/loadout-gold.png';
+
+    // --- Helpers: color conversion & classification ---
+    function rgbToHsv(r,g,b){
+      r/=255; g/=255; b/=255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h, s, v = max;
+      const d = max - min;
+      s = max === 0 ? 0 : d / max;
+      if (d === 0) h = 0;
+      else {
+        switch(max){
+          case r: h = (g-b)/d + (g<b?6:0); break;
+          case g: h = (b-r)/d + 2; break;
+          case b: h = (r-g)/d + 4; break;
+        }
+        h *= 60;
+      }
+      return {h,s,v};
+    }
+
+    // Heuristics tuned for your screenshots:
+    // - "Gold": warm hue ~35–65°, reasonably saturated/bright
+    // - "Blue": hue ~200–250°, reasonably saturated/bright
+    function classifyColor([r,g,b,a]){
+      if (a === 0) return 'none';
+      const {h,s,v} = rgbToHsv(r,g,b);
+      if (s > 0.3 && v > 0.25) {
+        if (h >= 35 && h <= 65) return 'gold';
+        if (h >= 200 && h <= 250) return 'blue';
+      }
+      return 'other';
+    }
+
+    // --- Wiring: when you click the image, sample the pixel under cursor ---
+    (function(){
+      const img = document.getElementById('loadoutImg');
+      const canvas = document.getElementById('samplerCanvas');
+      const ctx = canvas.getContext('2d');
+      // Ensure high quality sampling by drawing the *natural* image size to canvas
+      let natW = 0, natH = 0;
+
+      function drawToCanvas() {
+        if (!img.complete || !img.naturalWidth) return;
+        natW = img.naturalWidth; natH = img.naturalHeight;
+        canvas.width = natW; canvas.height = natH;
+        ctx.clearRect(0,0,natW,natH);
+        ctx.drawImage(img, 0, 0, natW, natH);
+      }
+
+      img.addEventListener('load', drawToCanvas);
+      if (img.complete) drawToCanvas();
+
+      // Map click from displayed size to natural image coordinates
+      img.addEventListener('click', (e) => {
+        const rect = img.getBoundingClientRect();
+        const xRel = (e.clientX - rect.left) / rect.width;
+        const yRel = (e.clientY - rect.top) / rect.height;
+        const x = Math.max(0, Math.min(natW - 1, Math.round(xRel * natW)));
+        const y = Math.max(0, Math.min(natH - 1, Math.round(yRel * natH)));
+
+        try {
+          const pixel = ctx.getImageData(x, y, 1, 1).data; // [r,g,b,a]
+          const cls = classifyColor(pixel);
+
+          // Behavior:
+          // - Click GOLD → switch to gold image
+          // - Click BLUE → switch to blue image
+          if (cls === 'gold' && img.src.indexOf(GOLD_SRC) === -1) {
+            img.src = GOLD_SRC;
+          } else if (cls === 'blue' && img.src.indexOf(BLUE_SRC) === -1) {
+            img.src = BLUE_SRC;
+          }
+        } catch (err) {
+          // Cross-origin or off-canvas error; do nothing
+          console.warn('Sampling failed:', err);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
