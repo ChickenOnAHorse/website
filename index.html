@@ -32,7 +32,7 @@
       <div class="section-head">
         <h2>Skins for Sale/Trade</h2>
 
-        <!-- FILTERS (between title and search) -->
+        <!-- FILTERS -->
         <div class="filters" aria-label="Filters">
           <fieldset class="filter-categories">
             <legend>Category</legend>
@@ -55,6 +55,9 @@
               Only unlocked
             </label>
           </div>
+
+          <!-- NEW: live count -->
+          <div id="count" class="count">Showing 0 items</div>
         </div>
 
         <label class="search-wrap" for="search">
@@ -72,6 +75,11 @@
           </div>
           <div class="thumb-wrap">
             <img class="thumb" alt="" loading="lazy" />
+            <!-- NEW: zoom button + pane -->
+            <button class="zoom-btn" type="button" title="View full image" aria-label="View full image">🔍</button>
+            <div class="zoom-pane" aria-hidden="true">
+              <img class="zoom-img" alt="" />
+            </div>
           </div>
           <dl class="meta">
             <div>
