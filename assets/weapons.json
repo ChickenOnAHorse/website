@@ -3,7 +3,7 @@
   "debug": false,
   "hotspots": {
     "gold": [
-      { "id": "1",  "title": "Slot 1",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "Glock-18 | Death Rattle 1x NiP k14 holo",  "title": "Slot 1",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "2",  "title": "Slot 2",  "x": 33.3, "y": 28.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "3",  "title": "Slot 3",  "x": 33.3, "y": 45.6, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "4",  "title": "Slot 4",  "x": 33.3, "y": 62.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
@@ -42,6 +42,7 @@
     ]
   }
 }
+
 
 
 
