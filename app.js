@@ -36,7 +36,7 @@ async function loadItems() {
         const availableAt = purchasedAt ? addDays(purchasedAt, 8) : null;
         return { ...r, name, purchasedAt, availableAt };
       })
-      .filter((r) => r.name); // never render empty names
+      .filter((r) => r.name); // prevent empty cards
 
     if (!items.length) {
       statusEl.textContent = 'No items currently available.';
@@ -52,33 +52,31 @@ async function loadItems() {
       // Title
       card.querySelector('.item-name').textContent = row.name;
 
-      // Image: default to chicken, then try Steam
+      // Image priority: sheet-provided URL -> Steam lookup -> chicken
       const img = card.querySelector('.thumb');
       img.alt = row.name;
       img.src = 'assets/chicken.png'; // safe default
       img.onerror = () => { img.src = 'assets/chicken.png'; }; // hard fallback
 
-      try {
-        const imgRes = await fetch(`/.netlify/functions/steam-image?name=${encodeURIComponent(row.name)}`);
-        if (imgRes.ok) {
-          const { url } = await imgRes.json();
-          if (url) {
-            img.src = url;
-          } // else keep chicken
-        }
-      } catch (e) {
-        // keep chicken; also helpful for debugging
-        console.debug('steam-image lookup failed for', row.name, e);
-      }
-
-      // Status + Available date
-      const availEl = card.querySelector('.available-date');
-      if (row.availableAt) {
-        availEl.textContent = fmtDate(row.availableAt);
+      if (row.image && typeof row.image === 'string' && row.image.trim()) {
+        img.src = row.image.trim();
       } else {
-        availEl.textContent = 'TBD';
+        try {
+          const imgRes = await fetch(`/.netlify/functions/steam-image?name=${encodeURIComponent(row.name)}`);
+          if (imgRes.ok) {
+            const { url } = await imgRes.json();
+            if (url) img.src = url; // otherwise stays chicken
+          }
+        } catch (e) {
+          console.debug('steam-image lookup failed for', row.name, e);
+        }
       }
 
+      // Availability date
+      const availEl = card.querySelector('.available-date');
+      availEl.textContent = row.availableAt ? fmtDate(row.availableAt) : 'TBD';
+
+      // Status line ("Available" vs "Trade locked for N more days")
       const statusLine = card.querySelector('.status-line');
       if (row.availableAt && row.availableAt <= now) {
         statusLine.textContent = 'Available';
