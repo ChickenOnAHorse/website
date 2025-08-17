@@ -16,6 +16,8 @@
       width:min(1200px, 95vw);
       position:relative;
       user-select:none;
+      /* default cursor; JS will flip to pointer when over the active band */
+      cursor: default;
     }
     .loadout img{
       width:100%; height:auto; display:block;
@@ -30,19 +32,27 @@
       font-size:.9rem;
     }
 
-    /* (Optional) dev helper to visualize clickable regions—toggle by adding .show-zones on .loadout */
-    .loadout.show-zones::before,
-    .loadout.show-zones::after{
+    /* --- Hover stripes (visual cue) --- */
+    .loadout::before,
+    .loadout::after{
       content:"";
-      position:absolute; inset:0; pointer-events:none;
+      position:absolute; inset:0;
+      pointer-events:none; /* don't block clicks */
+      opacity:0; transition:opacity .18s ease;
     }
-    /* right band (blue->gold cutoff) */
-    .loadout.show-zones[data-state="blue"]::after{
-      left:78%; width:22%; background:rgba(255,215,0,.12);
+    /* When blue view is active, show a gold stripe on the RIGHT on hover */
+    .loadout[data-state="blue"]:hover::after{
+      opacity:1;
+      left:78%; width:22%;
+      background:linear-gradient(90deg, rgba(255,215,0,.05) 0%, rgba(255,215,0,.18) 100%);
+      border-top-right-radius:.6rem; border-bottom-right-radius:.6rem;
     }
-    /* left band (gold->blue cutoff) */
-    .loadout.show-zones[data-state="gold"]::before{
-      left:0; width:22%; background:rgba(30,144,255,.12);
+    /* When gold view is active, show a blue stripe on the LEFT on hover */
+    .loadout[data-state="gold"]:hover::before{
+      opacity:1;
+      left:0; width:22%;
+      background:linear-gradient(90deg, rgba(30,144,255,.18) 0%, rgba(30,144,255,.05) 100%);
+      border-top-left-radius:.6rem; border-bottom-left-radius:.6rem;
     }
   </style>
 </head>
@@ -67,7 +77,7 @@
     <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
 
     <div class="loadout-wrap">
-      <div class="loadout" id="loadout" data-state="blue">
+      <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
         <!-- Start with the mostly BLUE image -->
         <img id="loadoutImg" src="assets/loadout-blue.png" alt="CS2 loadout view" loading="eager" />
         <div class="hint">
@@ -86,68 +96,97 @@
 
   <script src="app.js" defer></script>
   <script>
-  const BLUE_SRC = 'assets/loadout-blue.png';
-  const GOLD_SRC = 'assets/loadout-gold.png';
+    // --- Config: paths to your two images ---
+    const BLUE_SRC = 'assets/loadout-blue.png';
+    const GOLD_SRC = 'assets/loadout-gold.png';
 
-  const BLUE_TO_GOLD_RIGHT_BAND = 0.22; // right 22% of width
-  const GOLD_TO_BLUE_LEFT_BAND  = 0.22; // left 22% of width
+    // --- Clickable band sizes (as fraction of width) ---
+    const BLUE_TO_GOLD_RIGHT_BAND = 0.22; // right 22% (blue -> gold)
+    const GOLD_TO_BLUE_LEFT_BAND  = 0.22; // left 22%  (gold -> blue)
 
-  const preload = new Image(); preload.src = GOLD_SRC;
+    // Preload both for fast swaps
+    ['assets/loadout-gold.png','assets/loadout-blue.png'].forEach(src => { const i=new Image(); i.src=src; });
 
-  const container = document.getElementById('loadout');
-  const img = document.getElementById('loadoutImg');
+    const container = document.getElementById('loadout');
+    const img = document.getElementById('loadoutImg');
 
-  let isTransitioning = false;
+    let isTransitioning = false;
 
-  function swap(to){
-    if (isTransitioning) return;
-    const current = container.dataset.state;
-    if (to === current) return;
-    isTransitioning = true;
+    function swap(to){
+      if (isTransitioning) return;
+      const current = container.dataset.state;
+      if (to === current) return;
+      isTransitioning = true;
 
-    img.classList.add('is-fading');
+      img.classList.add('is-fading');
 
-    const doSwap = () => {
-      img.removeEventListener('transitionend', doSwap);
+      // Fallback timer in case transitionend is missed
+      const failSafe = setTimeout(() => performSwap(to), 320);
+
+      // If transition ends, do the swap immediately
+      img.addEventListener('transitionend', function onOut(){
+        img.removeEventListener('transitionend', onOut);
+        clearTimeout(failSafe);
+        performSwap(to);
+      }, { once:true });
+    }
+
+    function performSwap(to){
+      // Swap the src
       img.src = (to === 'gold') ? GOLD_SRC : BLUE_SRC;
       container.dataset.state = to;
 
+      // Fade back in after the image has loaded (in case of cache miss)
       const onLoad = () => {
         img.removeEventListener('load', onLoad);
         requestAnimationFrame(() => {
           img.classList.remove('is-fading');
+          // Unlock after fade-in (with a tiny fallback too)
+          const doneTimer = setTimeout(() => { isTransitioning = false; }, 320);
           img.addEventListener('transitionend', function endIn(){
             img.removeEventListener('transitionend', endIn);
+            clearTimeout(doneTimer);
             isTransitioning = false;
           }, { once:true });
         });
       };
-      img.addEventListener('load', onLoad, { once:true });
-    };
-    img.addEventListener('transitionend', doSwap, { once:true });
-  }
-
-  // ✅ Bind clicks on the whole container, not just the <img>
-  container.addEventListener('click', (e) => {
-    if (isTransitioning) return;
-    const rect = container.getBoundingClientRect();
-    const xRel = (e.clientX - rect.left) / rect.width; // 0..1
-    const state = container.dataset.state;
-
-    if (state === 'blue' && xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
-      swap('gold');
-    } else if (state === 'gold' && xRel <= GOLD_TO_BLUE_LEFT_BAND) {
-      swap('blue');
+      // If already complete (from cache), fire synchronously
+      if (img.complete) onLoad(); else img.addEventListener('load', onLoad);
     }
-  });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-      e.preventDefault();
-      swap(container.dataset.state === 'blue' ? 'gold' : 'blue');
-    }
-  });
-</script>
+    // Click handler attached to the container (not the <img>)
+    container.addEventListener('click', (e) => {
+      if (isTransitioning) return;
+      const rect = container.getBoundingClientRect();
+      const xRel = (e.clientX - rect.left) / rect.width; // 0..1
+      const state = container.dataset.state;
+
+      if (state === 'blue' && xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND) {
+        swap('gold');
+      } else if (state === 'gold' && xRel <= GOLD_TO_BLUE_LEFT_BAND) {
+        swap('blue');
+      }
+    });
+
+    // Change cursor to pointer only when hovering an active band
+    container.addEventListener('mousemove', (e) => {
+      const rect = container.getBoundingClientRect();
+      const xRel = (e.clientX - rect.left) / rect.width;
+      const state = container.dataset.state;
+      const inActiveZone = (state === 'blue')
+        ? (xRel >= 1 - BLUE_TO_GOLD_RIGHT_BAND)
+        : (xRel <= GOLD_TO_BLUE_LEFT_BAND);
+      container.style.cursor = inActiveZone ? 'pointer' : 'default';
+    });
+    container.addEventListener('mouseleave', () => { container.style.cursor = 'default'; });
+
+    // Keyboard toggle (spacebar)
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        swap(container.dataset.state === 'blue' ? 'gold' : 'blue');
+      }
+    });
+  </script>
 </body>
 </html>
-
