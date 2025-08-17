@@ -11,18 +11,18 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header">
-  <div class="container header-inner">
-    <div class="brand">🐔🐎 <span>Chicken on a Horse</span></div>
-
-    <nav class="top-nav">
-    <a href="collection.html" class="nav-link">My Collection</a>
-    <a href="index.html" class="nav-link active">Skins for Sale/Trade</a>
-    <a href="about.html" class="nav-link">About</a>
-    <button id="theme-toggle" class="theme-btn">☾</button>
-  </nav>
-  </div>
-</header>
-
+    <div class="container header-inner">
+      <nav class="top-nav" aria-label="Primary">
+        <a href="index.html" class="logo" aria-label="Home">🐔🐴</a>
+        <div class="nav-links">
+          <a href="collection.html" class="nav-link">My Collection</a>
+          <a href="index.html" class="nav-link active">Skins for Sale/Trade</a>
+          <a href="about.html" class="nav-link">About</a>
+          <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        </div>
+      </nav>
+    </div>
+  </header>
 
   <main id="main">
     <section id="hero" class="hero container">
@@ -103,8 +103,13 @@
 
       <p id="status" class="status"></p>
     </section>
-
   </main>
+
+  <!-- GLOBAL LIGHTBOX -->
+  <div id="lightbox" class="lightbox hidden" aria-modal="true" role="dialog" aria-label="Image preview">
+    <button id="lightbox-close" class="lightbox-close" aria-label="Close preview">×</button>
+    <img id="lightbox-img" alt="">
+  </div>
 
   <footer class="site-footer">
     <div class="container footer-inner">
@@ -112,12 +117,6 @@
       <a href="#top" class="back-to-top">Back to top ↑</a>
     </div>
   </footer>
-
-  <!-- GLOBAL LIGHTBOX -->
-  <div id="lightbox" class="lightbox hidden" aria-modal="true" role="dialog" aria-label="Image preview">
-    <button id="lightbox-close" class="lightbox-close" aria-label="Close preview">×</button>
-    <img id="lightbox-img" alt="">
-  </div>
 
   <script src="app.js" defer></script>
 </body>
