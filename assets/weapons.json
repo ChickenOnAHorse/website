@@ -28,20 +28,21 @@
       { "id": "4",  "title": "Five-SeveN | Case Hardened Tier 1 #670",  "x": 33.9, "y": 62.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
       { "id": "5",  "title": "Desert Eagle | Blaze 1x HR K14 Holo",  "x": 33.9, "y": 79.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/deagle.png" },
 
-      { "id": "6",  "title": "Slot 6",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "7",  "title": "Slot 7",  "x": 45.2, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "8",  "title": "Slot 8",  "x": 45.2, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "9",  "title": "Slot 9",  "x": 45.2, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "10", "title": "Slot 10", "x": 45.2, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "6",  "title": "Nova | Graphite 4x HR K14 Paper",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "7",  "title": "UMP-45 | Caramel 4x VP K14 Paper",  "x": 45.2, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/ump.png" },
+      { "id": "8",  "title": "MAG-7 | Foresight",  "x": 45.2, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/mag7.png" },
+      { "id": "9",  "title": "P90 | Death by Kitty 1x LDLC K14 Holo",  "x": 45.2, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
+      { "id": "10", "title": "MP9 | Airlock 4x Dignitas K14 Paper", "x": 45.2, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
 
-      { "id": "11", "title": "Slot 11", "x": 56.9, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "12", "title": "Slot 12", "x": 56.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "13", "title": "Slot 13", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "14", "title": "Slot 14", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
-      { "id": "15", "title": "Slot 15", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" }
+      { "id": "11", "title": "M4A4 | Howl 1x iBP K14 Holo", "x": 56.9, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/m4a4.png" },
+      { "id": "12", "title": "M4A1-S | Welcome to the Jungle 4x Vox K14 Paper", "x": 56.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "13", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/Untitled2.png" },
+      { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ]
   }
 }
+
 
 
 
