@@ -34,4 +34,59 @@ exports.handler = async function (event) {
       };
     }
 
-    // Normalize to ou
+    // Normalize to our shape
+    let rows = [];
+    if (Array.isArray(data)) {
+      if (data.length && !Array.isArray(data[0])) {
+        // Array of objects (your case)
+        rows = data.map((r) => ({
+          purchaseDate: r.Date ?? r.date ?? "",
+          name: r.Item ?? "",
+          special: r["Special Characteristics"] ?? "",
+          float: r.Float ?? "",
+          Include: r.Include,
+          Status: r.Status ?? "",
+          image: r.Image ?? r["Image URL"] ?? r.image ?? ""   // Column H
+        }));
+      } else {
+        // Array of arrays (fallback A..H)
+        rows = data.map((row) => ({
+          purchaseDate: row[0],
+          name: row[1],
+          special: row[2],
+          float: row[3],
+          Include: row[5],
+          Status: row[6],
+          image: row[7] || ""
+        }));
+      }
+    }
+
+    // EXACT FILTER
+    const visible = rows.filter((r) => isTrueBool(r.Include) && isBlank(r.Status));
+
+    // Debug view
+    if (event?.queryStringParameters?.debug === "1") {
+      return {
+        statusCode: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          rawCount: Array.isArray(data) ? data.length : 0,
+          normalizedCount: rows.length,
+          visibleCount: visible.length,
+          normalizedSample: rows.slice(0, 5),
+          firstVisibleSample: visible.slice(0, 5)
+        })
+      };
+    }
+
+    // Return to client
+    return {
+      statusCode: 200,
+      headers: { "content-type": "application/json", "cache-control": "no-store" },
+      body: JSON.stringify(visible)
+    };
+  } catch (e) {
+    return { statusCode: 500, body: `Fetch failed: ${String(e)}` };
+  }
+};
