@@ -17,6 +17,11 @@
       position:relative;
       user-select:none;
     }
+    .img-wrap{
+      position: relative;
+      width: 100%;
+      display: block;
+    }
     .loadout-img{
       width:100%; height:auto; display:block;
       border-radius:.6rem; box-shadow:0 8px 30px rgba(0,0,0,.35);
@@ -25,43 +30,78 @@
     }
     .fade-out{ opacity:0; }
 
+    /* Hover stripe for blue<->gold swap (exactly over the image area) */
+    #hoverBand{
+      position:absolute;
+      top:0; bottom:0;
+      left:0; width:0;
+      background:linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
+      border-radius:.6rem;
+      pointer-events:none;
+      display:none;
+      z-index: 3;
+    }
+
+    /* Hotspots layer */
+    #hotspots {
+      position:absolute; inset:0;
+      z-index:2; /* above image; below hoverBand */
+    }
+    .hotspot {
+      position:absolute;
+      border-radius:.35rem;
+      cursor:pointer;
+      /* subtle hover glow */
+      box-shadow: 0 0 0 0 rgba(96,165,250,0);
+      transition: box-shadow .15s ease, background-color .15s ease;
+      background-color: transparent;
+    }
+    .hotspot:hover {
+      box-shadow: 0 0 0 2px rgba(96,165,250,.65);
+      background-color: rgba(96,165,250,.08);
+    }
+
+    /* Debug labels (toggle in JS with DEBUG) */
+    .hotspot .label {
+      position:absolute; bottom:4px; left:6px;
+      font-size:.8rem; color:#e5e7eb;
+      background:rgba(0,0,0,.45); padding:.1rem .35rem; border-radius:.3rem;
+      pointer-events:none;
+    }
+
     .hint{
       text-align:center; color:var(--muted); margin-top:.75rem;
       font-size:.9rem;
     }
 
-    /* Hover stripe overlay (visual cue). JS sets left/width */
-    #hoverBand{
-      position:absolute; top:0; height:100%;
-      background:linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
-      border-radius:.6rem;
-      pointer-events:none; /* never blocks clicks */
-      display:none;
+    /* Modal for weapon preview */
+    .modal.hidden { display:none; }
+    .modal {
+      position:fixed; inset:0; z-index:2000;
+      background:rgba(0,0,0,.85);
+      display:flex; align-items:center; justify-content:center;
+      padding:2rem;
     }
-    /* Ensure the band sits exactly over the image area */
-.img-wrap{
-  position: relative;
-  width: 100%;
-  display: block;
-}
-.img-wrap .loadout-img{
-  display:block;
-  width:100%;
-  height:auto;
-}
-
-/* Hover stripe overlay (now inside .img-wrap so it never extends past image) */
-#hoverBand{
-  position:absolute;
-  top:0; bottom:0;           /* stretches from top to bottom of the image only */
-  left:0;                    /* JS will set left/width each frame */
-  width:0;                   /* JS sets width */
-  background:linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
-  border-radius:.6rem;
-  pointer-events:none;
-  display:none;
-}
-
+    .modal-inner{
+      position:relative;
+      max-width:min(90vw, 900px);
+      max-height:80vh;
+      display:flex; flex-direction:column; gap:.75rem;
+    }
+    .modal-header{
+      display:flex; justify-content:space-between; align-items:center;
+      color:#e5e7eb;
+    }
+    .modal-title{ margin:0; font-size:1.1rem; }
+    .modal-close{
+      border:1px solid var(--border); background:rgba(255,255,255,.12);
+      color:#fff; border-radius:.5rem; padding:.25rem .6rem; cursor:pointer;
+    }
+    .modal-img{
+      width:100%; height:auto; object-fit:contain;
+      border-radius:.5rem; background:#0b1321;
+      box-shadow:0 8px 30px rgba(0,0,0,.35);
+    }
   </style>
 </head>
 <body>
@@ -85,20 +125,33 @@
     <h1 style="text-align:center;margin-top:.5rem;">My Collection</h1>
 
     <div class="loadout-wrap">
-  <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
-    <!-- NEW: wrap image + hover band so band height matches image exactly -->
-    <div class="img-wrap" id="imgWrap">
-      <img id="loadoutImage" class="loadout-img" src="assets/loadout-blue.png" alt="CS2 loadout view" />
-      <div id="hoverBand" aria-hidden="true"></div>
-    </div>
+      <div class="loadout" id="loadout" data-state="blue" aria-live="polite">
+        <div class="img-wrap" id="imgWrap">
+          <img id="loadoutImage" class="loadout-img" src="assets/loadout-blue.png" alt="CS2 loadout view" />
+          <!-- swap hover band -->
+          <div id="hoverBand" aria-hidden="true"></div>
+          <!-- hotspots live here -->
+          <div id="hotspots" aria-hidden="false"></div>
+        </div>
 
-    <div class="hint">
-      Click the <strong>right</strong> gold band to view the gold loadout, or the <strong>left</strong> blue band to return.
+        <div class="hint">
+          Click the <strong>right 28.06%</strong> to view the gold loadout, or the <strong>left 28.06%</strong> to return.
+          Hover squares to preview; click to see the weapon.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="weaponModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="weaponTitle">
+    <div class="modal-inner">
+      <div class="modal-header">
+        <h3 class="modal-title" id="weaponTitle"></h3>
+        <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      </div>
+      <img id="weaponImg" class="modal-img" alt="">
     </div>
   </div>
-</div>
-
-  </main>
 
   <footer class="site-footer">
     <div class="container footer-inner">
@@ -107,15 +160,7 @@
     </div>
   </footer>
 
-  <!-- Keep your global app.js -->
   <script src="app.js" defer></script>
-  <!-- New page-specific script -->
   <script src="collection.js" defer></script>
-
-  <noscript>
-    <style>.hint{display:none}</style>
-  </noscript>
 </body>
 </html>
-
-
