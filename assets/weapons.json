@@ -3,45 +3,46 @@
   "debug": false,
   "hotspots": {
     "gold": [
-      { "id": "1",  "title": "Glock-18 | Death Rattle 1x NiP K14 Holo",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "1",  "title": "Glock-18 | Death Rattle 1x NiP K14 Holo",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/glock.png" },
       { "id": "2",  "title": "Dual Berettas | Panther 4x Complexity K14 Paper",  "x": 33.3, "y": 28.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/dualies.png" },
       { "id": "3",  "title": "P250 | Steel Disruption 4x Complexity K14 Holo",  "x": 33.3, "y": 45.6, "w": 10.1, "h": 16.1, "image": "assets/weapons/p250.png" },
-      { "id": "4",  "title": "Tec-9 | Terrace 4x VP Atlanta Holo ",  "x": 33.3, "y": 62.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "4",  "title": "Tec-9 | Terrace 4x VP Atlanta Holo ",  "x": 33.3, "y": 62.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/tec9.png" },
       { "id": "5",  "title": "Desert Eagle | Blaze 1x HR K14 Holo",  "x": 33.3, "y": 80.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/deagle.png" },
 
-      { "id": "6",  "title": "Nova | Graphite 4x HR K14 Paper",  "x": 44.9, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "6",  "title": "Nova | Graphite 4x HR K14 Paper",  "x": 44.9, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova.png" },
       { "id": "7",  "title": "UMP-45 | Caramel 4x VP K14 Paper",  "x": 44.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/ump.png" },
-      { "id": "8",  "title": "MP7 | Anodized Navy 4x LDLC K14 Paper",  "x": 44.9, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "8",  "title": "MP7 | Anodized Navy 4x LDLC K14 Paper",  "x": 44.9, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/mp7.png" },
       { "id": "9",  "title": "P90 | Death by Kitty 1x LDLC K14 Holo",  "x": 44.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
-      { "id": "10", "title": "MAC-10 | Heat 4x Fnatic K14 Paper", "x": 44.9, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png.png" },
+      { "id": "10", "title": "MAC-10 | Heat 4x Fnatic K14 Paper", "x": 44.9, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/mac10.png" },
 
       { "id": "11", "title": "AK-47 | Neon Revolution 4x 3DMAX K14 Holo", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/untitled2.png" },
       { "id": "12", "title": "SG 553 | Bulldozer 4x Navi K14 Paper", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/sg.png" },
-      { "id": "13", "title": "Galil AR | Aqua Terrace", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
-      { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "13", "title": "Galil AR | Aqua Terrace", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil.png" },
+      { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ],
     "blue": [
       { "id": "1",  "title": "USP-S | Serum 4x Reason K14 Paper",  "x": 33.9, "y": 7.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/usp.png" },
       { "id": "2",  "title": "Dual Berettas | Panther 4x Complexity K14 Paper",  "x": 33.9, "y": 27.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/dualies.png" },
       { "id": "3",  "title": "P250 | Steel Disruption 4x Complexity K14 Holo",  "x": 33.9, "y": 45.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/p250.png" },
-      { "id": "4",  "title": "Five-SeveN | Case Hardened Tier 1 #670",  "x": 33.9, "y": 62.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "4",  "title": "Five-SeveN | Case Hardened Tier 1 #670",  "x": 33.9, "y": 62.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/5-7.png" },
       { "id": "5",  "title": "Desert Eagle | Blaze 1x HR K14 Holo",  "x": 33.9, "y": 79.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/deagle.png" },
 
-      { "id": "6",  "title": "Nova | Graphite 4x HR K14 Paper",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "6",  "title": "Nova | Graphite 4x HR K14 Paper",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova.png" },
       { "id": "7",  "title": "UMP-45 | Caramel 4x VP K14 Paper",  "x": 45.2, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/ump.png" },
       { "id": "8",  "title": "MAG-7 | Foresight",  "x": 45.2, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/mag7.png" },
       { "id": "9",  "title": "P90 | Death by Kitty 1x LDLC K14 Holo",  "x": 45.2, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
-      { "id": "10", "title": "MP9 | Airlock 4x Dignitas K14 Paper", "x": 45.2, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "10", "title": "MP9 | Airlock 4x Dignitas K14 Paper", "x": 45.2, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/mp9.png" },
 
       { "id": "11", "title": "M4A4 | Howl 1x iBP K14 Holo", "x": 56.9, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/m4a4.png" },
       { "id": "12", "title": "M4A1-S | Welcome to the Jungle 4x Vox K14 Paper", "x": 56.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/m4a1-s.png" },
-      { "id": "13", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
-      { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/chicken.png" },
+      { "id": "13", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
+      { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/famas.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ]
   }
 }
+
 
 
 
