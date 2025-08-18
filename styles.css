@@ -376,15 +376,20 @@ select.control { padding-right: 1.75rem; }
   border-radius: 5px;
   background: linear-gradient(to right, darkgreen, lightgreen, goldenrod, #e67e22, darkred);
 }
-.wear-pointer {
+/* Wear bar pointer: point DOWN, tip touches the bar */
+.wear-pointer{
   position: absolute;
-  top: -4px;
-  width: 0;
-  height: 0;
+  left: 0;               /* we set left% via JS */
+  top: 100%;             /* sit just below the bar edge */
+  transform: translateX(-50%);
+  width: 0; height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-bottom: 8px solid white;
+  border-top: 9px solid #fff;  /* ▼ points downward */
+  /* optional tiny gap: */
+  margin-top: 2px;
 }
+
 .wear-value {
   font-size: .75rem;
   text-align: center;
