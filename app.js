@@ -25,11 +25,58 @@ function parseFloatSafe(v) {
 function conditionOf(floatVal) {
   const f = parseFloatSafe(floatVal);
   if (!Number.isFinite(f)) return { label: '-', cls: 'cond-unknown' };
-  if (f < 0.07) return { label: 'Factory New',   cls: 'cond-fn' };
-  if (f < 0.15) return { label: 'Minimal Wear',  cls: 'cond-mw' };
-  if (f < 0.38) return { label: 'Field-Tested',  cls: 'cond-ft' };
-  if (f < 0.45) return { label: 'Well-Worn',     cls: 'cond-ww' };
-  return           { label: 'Battle-Scarred',    cls: 'cond-bs' };
+
+  if (f <= 0.0799) return { label: 'Factory New',  cls: 'cond-fn' };     // 0–0.0799
+  if (f <= 0.1499) return { label: 'Minimal Wear', cls: 'cond-mw' };     // 0.08–0.1499
+  if (f <= 0.37999) return { label: 'Field-Tested', cls: 'cond-ft' };    // 0.15–0.37999
+  if (f <= 0.4499) return { label: 'Well-Worn',     cls: 'cond-ww' };    // 0.38–0.4499
+  return                 { label: 'Battle-Scarred', cls: 'cond-bs' };     // 0.45–1
+}
+// Map a raw float (0–1) into % along the proportional wear bar
+function floatToBarPct(fRaw) {
+  const f = Math.min(1, Math.max(0, parseFloatSafe(fRaw)));
+
+  // segment lengths in FLOAT domain
+  const LEN_FN = 0.0799;          // 7.99%
+  const LEN_MW = 0.1499 - 0.08;   // 0.0699 -> 6.99%
+  const LEN_FT = 0.37999 - 0.15;  // 0.22999 -> 22.999%
+  const LEN_WW = 0.4499 - 0.38;   // 0.0699 -> 6.99%
+  const LEN_BS = 1 - 0.45;        // 0.55   -> 55%
+
+  // corresponding BAR widths in %
+  const PCT_FN = 7.99;
+  const PCT_MW = 6.99;
+  const PCT_FT = 22.999;
+  const PCT_WW = 6.99;
+  const PCT_BS = 55.0;
+
+  const CUT_FN = 0.0799;
+  const CUT_MW = 0.1499;
+  const CUT_FT = 0.37999;
+  const CUT_WW = 0.4499;
+
+  if (f <= CUT_FN)  return (f / LEN_FN) * PCT_FN;
+
+  if (f <= CUT_MW)  {
+    const frac = (f - 0.08) / LEN_MW;
+    return PCT_FN + frac * PCT_MW;
+  }
+
+  if (f <= CUT_FT)  {
+    const frac = (f - 0.15) / LEN_FT;
+    return PCT_FN + PCT_MW + frac * PCT_FT;
+  }
+
+  if (f <= CUT_WW)  {
+    const frac = (f - 0.38) / LEN_WW;
+    return PCT_FN + PCT_MW + PCT_FT + frac * PCT_WW;
+  }
+
+  // BS
+  const frac = (f - 0.45) / LEN_BS;
+  return PCT_FN + PCT_MW + PCT_FT + PCT_WW + frac * PCT_BS;
+}
+
 }
 function countdownFromPurchase(purchaseDate) {
   if (!purchaseDate) return null;
@@ -153,8 +200,8 @@ function createCard(raw) {
   const pointer = document.createElement('div');
   pointer.className = 'wear-pointer';
   const f = parseFloatSafe(floatVal);
-  const leftPct = Number.isFinite(f) ? Math.min(100, Math.max(0, f * 100)) : 0;
-  pointer.style.left = `${leftPct}%`;
+const leftPct = Number.isFinite(f) ? floatToBarPct(f) : 0;
+pointer.style.left = `${leftPct}%`;
   wearBar.appendChild(pointer);
 
   wearWrap.appendChild(wearBar);
