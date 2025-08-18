@@ -255,4 +255,32 @@ select.control { padding-right: 1.75rem; }
 }
 .skip-link:focus{ top:8px; }
 
+/* coah/styles.css patch v2025-08-17T08:14Z – uniform card images */
+.grid .card .image-container{
+  position: relative;
+  width: 100%;
+  /* Keep all cards uniform: 4:3 window (adjust if you prefer 16:9) */
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: .6rem;
+  background: #0e0e0e;
+}
+.grid .card .image-container img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* fills the window without stretching */
+  display: block;
+}
+.grid .card .magnify-btn{
+  position: absolute;
+  right: .5rem; bottom: .5rem;
+  border: 1px solid var(--border, #2a2a2a);
+  background: rgba(0,0,0,.45);
+  color: #fff;
+  border-radius: .5rem;
+  padding: .25rem .5rem;
+  cursor: pointer;
+}
+
+
 
