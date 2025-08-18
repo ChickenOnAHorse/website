@@ -444,4 +444,21 @@ select.control { padding-right: 1.75rem; }
 .modal{ position:fixed; inset:0; background:rgba(0,0,0,.85); display:flex; align-items:center; justify-content:center; z-index:9999; padding:2rem; }
 .modal-img{ max-width:min(92vw,1600px); max-height:86vh; width:auto; height:auto; object-fit:contain; border-radius:.5rem; box-shadow:0 12px 40px rgba(0,0,0,.6); }
 
+/* Title centered */
+.card-title { margin: 0 0 .35rem; font-size: 1rem; text-align: center; }
+
+/* Proportional wear bar (FN 7.99%, MW 6.99%, FT 22.999%, WW 6.99%, BS 55%) */
+.wear-bar{
+  position:relative; height:10px; border-radius:6px;
+  background: linear-gradient(
+    90deg,
+    #0a6a0a 0%,     #0a6a0a 7.99%,    /* FN */
+    #3dbb3d 7.99%,  #3dbb3d 14.98%,   /* MW */
+    #d1a81d 14.98%, #d1a81d 37.979%,  /* FT */
+    #d17a3a 37.979%,#d17a3a 44.969%,  /* WW */
+    #8b1f1f 44.969%,#8b1f1f 100%      /* BS */
+  );
+}
+
+
 
