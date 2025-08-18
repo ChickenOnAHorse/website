@@ -435,11 +435,6 @@ select.control { padding-right: 1.75rem; }
   position:relative; height:10px; border-radius:6px;
   background: linear-gradient(90deg,#0a6a0a 0%, #3dbb3d 22%, #d1a81d 48%, #d17a3a 72%, #8b1f1f 100%);
 }
-.wear-pointer{
-  position:absolute; top:-5px; transform:translateX(-50%);
-  width:0; height:0;
-  border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:9px solid #fff;
-}
 .wear-value{ margin-top:.25rem; font-size:.78rem; text-align:center; opacity:.85; }
 
 /* Bottom lines */
