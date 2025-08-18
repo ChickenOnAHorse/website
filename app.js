@@ -104,8 +104,41 @@ function floatToBarPct(fRaw) {
 // -------------------- Category + Kato14 --------------------
 function getCategory(name) {
   const n = (name || '').toLowerCase();
-  if (n.includes('knife')) return 'Knives';
-  if (n.includes('glove')) return 'Gloves';
+
+  // Knives: include families that don't literally say "knife"
+  const knifeKeywords = [
+    'knife',            // generic catch
+    'shadow daggers',   // specific request
+    'karambit',
+    'bayonet',
+    'butterfly',
+    'stiletto',
+    'falchion',
+    'huntsman',
+    'nomad',
+    'skeleton',
+    'survival',
+    'tactical',
+    'classic',
+    'paracord',
+    'navaja',
+    'ursus',
+    'talon',
+    'gut',
+    'm9 bayonet',
+    'bowie'
+  ];
+  if (knifeKeywords.some(k => n.includes(k))) return 'Knives';
+
+  // Gloves: include Hand Wraps that don't say "gloves"
+  const gloveKeywords = [
+    'glove',        // generic catch
+    'hand wraps',   // specific request
+    'wraps'         // looser match to be safe
+  ];
+  if (gloveKeywords.some(k => n.includes(k))) return 'Gloves';
+
+  // Guns dictionary
   const guns = [
     'ak-47','ak47','m4a1','m4a4','awp','usp','usp-s','p2000','p250','famas','galil','aug','ssg',
     'scar','scar-20','mac-10','mac10','mp7','mp9','ump','p90','pp-bizon','bizon','nova','xm1014',
@@ -113,11 +146,10 @@ function getCategory(name) {
     'dualies','five-seven','fiveseven','cz75','tec-9','tec9','glock','sg 553','sg553'
   ];
   if (guns.some(g => n.includes(g))) return 'Guns';
+
   return 'Other';
 }
-function isKato14(special) {
-  const s = (special || '').toLowerCase();
-  return s.includes('kato14') || s.includes('kato') || s.includes('k14');
+
 }
 
 // -------------------- Modal --------------------
@@ -223,7 +255,7 @@ function createCard(item) {
 
   const wearVal = document.createElement('div');
   wearVal.className = 'wear-value';
-  wearVal.textContent = Number.isFinite(parseFloatSafe(item.float)) ? parseFloat(item.float).toFixed(10) : '-';
+  wearVal.textContent = 'Float: ' + (Number.isFinite(parseFloatSafe(item.float)) ? parseFloat(item.float).toFixed(10) : '-');
   wearWrap.appendChild(wearVal);
 
   card.appendChild(wearWrap);
