@@ -82,60 +82,91 @@ function showModalImage(src) {
   document.addEventListener('keydown', onKey);
 }
 
-function createCard(it) {
-  const name = it.name || it.Name || '-';
-  const special = it.special || it['Special'] || it['Special Characteristics'] || '';
-  const floatVal = it.float ?? it.Float;
-
+function createCard(item) {
   const card = document.createElement('div');
   card.className = 'card';
 
-  const imgWrap = document.createElement('div');
-  imgWrap.className = 'image-container';
+  // Title
+  const title = document.createElement('h3');
+  title.textContent = item.name;
+  card.appendChild(title);
+
+  // Badge + Condition row
+  const row = document.createElement('div');
+  row.className = 'card-row';
+
+  const badge = document.createElement('span');
+  badge.className = 'badge ' + (item.locked ? 'locked' : 'unlocked');
+  badge.textContent = item.locked ? 'Locked' : 'Unlocked';
+  row.appendChild(badge);
+
+  const condition = document.createElement('span');
+  condition.className = 'condition ' + item.condition.toLowerCase().replace(' ', '-');
+  condition.textContent = item.condition;
+  row.appendChild(condition);
+
+  card.appendChild(row);
+
+  // Image container
+  const imgContainer = document.createElement('div');
+  imgContainer.className = 'image-container';
 
   const img = document.createElement('img');
-  img.loading = 'lazy';
-  img.decoding = 'async';
-  img.alt = name;
-  img.src = it.image || it.Image || 'assets/chicken.png';
+  img.src = item.image;
+  img.alt = item.name;
+  imgContainer.appendChild(img);
 
   const mag = document.createElement('button');
   mag.className = 'magnify-btn';
   mag.type = 'button';
   mag.textContent = '🔍';
-  mag.addEventListener('click', (e) => { e.stopPropagation(); showModalImage(img.src); });
+  mag.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showModalImage(item.image);
+  });
+  imgContainer.appendChild(mag);
 
-  imgWrap.appendChild(img);
-  imgWrap.appendChild(mag);
+  card.appendChild(imgContainer);
 
-  const title = document.createElement('h3');
-  title.textContent = name;
+  // Wear bar + float value
+  const wearWrapper = document.createElement('div');
+  wearWrapper.className = 'wear-wrapper';
 
-  const cond = document.createElement('p');
-  cond.textContent = `Condition: ${parseCondition(floatVal)}`;
+  const wearBar = document.createElement('div');
+  wearBar.className = 'wear-bar';
 
-  const specialEl = document.createElement('p');
-  if (special) specialEl.textContent = `Special: ${special}`;
+  const wearFill = document.createElement('div');
+  wearFill.className = 'wear-fill';
+  wearBar.appendChild(wearFill);
 
-  const status = document.createElement('p');
-  status.className = 'status';
-  const purchase = it.purchaseDate || it.Date;
-  const countdown = formatLockCountdown(purchase);
-  if (countdown) {
-    status.textContent = countdown;
-    status.classList.add('locked');
-  } else {
-    status.textContent = 'Unlocked';
-    status.classList.add('unlocked');
-  }
+  const wearPointer = document.createElement('div');
+  wearPointer.className = 'wear-pointer';
+  wearPointer.style.left = (item.float * 100) + '%';
+  wearBar.appendChild(wearPointer);
 
-  card.appendChild(imgWrap);
-  card.appendChild(title);
-  card.appendChild(cond);
-  if (special) card.appendChild(specialEl);
-  card.appendChild(status);
+  wearWrapper.appendChild(wearBar);
+
+  const wearValue = document.createElement('div');
+  wearValue.className = 'wear-value';
+  wearValue.textContent = item.float.toFixed(10);
+  wearWrapper.appendChild(wearValue);
+
+  card.appendChild(wearWrapper);
+
+  // Special + trade lock
+  const special = document.createElement('div');
+  special.className = 'special';
+  special.textContent = item.special || '';
+  card.appendChild(special);
+
+  const trade = document.createElement('div');
+  trade.className = 'trade';
+  trade.textContent = item.locked ? `Trade locked for ${item.lockedUntil}` : 'Unlocked';
+  card.appendChild(trade);
+
   return card;
 }
+
 
 function renderCards(data, filters) {
   const grid = document.getElementById('cards-container');
