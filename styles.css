@@ -174,3 +174,85 @@ a{color:var(--ink)} a:hover{color:#fff}
 .badge-available{ background:#14532d; color:#dcfce7; }  /* dark green on light mint */
 .badge-locked{    background:#78350f; color:#fde68a; }  /* brown on soft yellow */
 
+/* coah/styles.css patch v2025-08-17T07:36Z — controls row polish */
+
+/* Layout */
+.controls { margin-block: 1rem 0.5rem; }
+.controls-row{
+  display:flex; align-items:center; flex-wrap:wrap;
+  gap: .6rem 1rem;
+}
+
+/* Labels */
+.control-label{
+  font-size:.9rem; color:var(--muted, #a3a3a3);
+  margin-right:.25rem;
+}
+
+/* Inputs / selects */
+.control, .control.search{
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  background: var(--surface-2, #191919);
+  color:#eaeaea;
+  border:1px solid var(--border, #2a2a2a);
+  border-radius:.5rem;
+  height: 38px;
+  line-height: 38px;
+  padding: 0 .75rem;
+}
+
+/* Selects: add a tiny chevron spacing feel (no image to satisfy CSP) */
+select.control { padding-right: 1.75rem; }
+
+/* Search width on desktop; shrinks gracefully */
+.control.search{
+  min-width: 220px;
+  width: clamp(180px, 28vw, 320px);
+}
+
+/* Checkbox group */
+.control-checkbox{
+  display:flex; align-items:center; gap:.5rem;
+  padding: .25rem .5rem;
+  border:1px solid var(--border, #2a2a2a);
+  background: var(--surface-2, #191919);
+  border-radius:.5rem;
+  height:38px;
+}
+.control-checkbox input{ width:16px; height:16px; }
+
+/* Item count */
+.item-count{
+  margin-top:.5rem;
+  color: var(--muted, #a3a3a3);
+  font-size:.95rem;
+}
+
+/* Focus states */
+.control:focus, .control.search:focus, .control-checkbox:focus-within, select.control:focus{
+  outline:none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96,165,250,.25);
+}
+
+/* Mobile tidy */
+@media (max-width: 720px){
+  .controls-row{
+    gap:.5rem;
+  }
+  .control.search{
+    flex:1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Keep skip link hidden until focused */
+.skip-link{
+  position:absolute; left:8px; top:-40px;
+  background:#0f0f0f; color:#fff; padding:.4rem .6rem; border-radius:.35rem;
+  transition: top .2s ease; z-index:1000; text-decoration:none; border:1px solid #2a2a2a;
+}
+.skip-link:focus{ top:8px; }
+
+
