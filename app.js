@@ -60,15 +60,28 @@ function isKato14(special) {
 
 // ================== RENDER ==================
 function showModalImage(src) {
+  // Clean up any existing modal
+  const existing = document.querySelector('.modal');
+  if (existing) existing.remove();
+
   const modal = document.createElement('div');
   modal.className = 'modal';
-  modal.onclick = () => modal.remove();
+  modal.addEventListener('click', () => modal.remove());
+
   const img = document.createElement('img');
   img.className = 'modal-img';
+  img.alt = 'Full image';
   img.src = src || 'assets/chicken.png';
+  img.addEventListener('click', (e) => e.stopPropagation()); // don't close when clicking the image
+
   modal.appendChild(img);
   document.body.appendChild(modal);
+
+  // Esc to close
+  const onKey = (e) => { if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
 }
+
 function createCard(it) {
   const name = it.name || it.Name || '-';
   const special = it.special || it['Special'] || it['Special Characteristics'] || '';
