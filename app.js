@@ -1,25 +1,60 @@
-/* coah/app.js v2025-08-17T09:42Z — robust normalization + locked card spec */
+/* coah/app.js v2025-08-17T10:22Z — robust normalize, Guns+Kato14, centered title, bold labels, fixed PST unlock, proportional wear bar */
 
 // -------------------- Data source --------------------
 const API_URL = '/.netlify/functions/fetch-items';
 
-// -------------------- Time helpers (PST midnight +8d) --------------------
-function toPSTMidnight(dateLike) {
-  if (!dateLike) return null;
-  const d = new Date(dateLike);
+// -------------------- Time helpers (exact LA midnight +8d) --------------------
+// Get offset (in minutes) for a timeZone at a specific instant
+function tzOffsetAt(date, timeZone) {
+  const fmt = (tz) => new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  }).formatToParts(date).reduce((a, p) => (a[p.type] = p.value, a), {});
+  const pTz  = fmt(timeZone);
+  const pUtc = fmt('UTC');
+  const asDate = (p) => new Date(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}Z`);
+  const dTz  = asDate(pTz);
+  const dUtc = asDate(pUtc);
+  return (dUtc - dTz) / 60000; // minutes
+}
+
+// Build a Date that represents midnight of the given date in America/Los_Angeles
+function pstMidnight(dateLike) {
+  const base = new Date(dateLike);
   const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Los_Angeles',
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  }).formatToParts(d).reduce((a, p) => (a[p.type] = p.value, a), {});
-  return new Date(`${parts.year}-${parts.month}-${parts.day}T00:00:00Z`);
+    timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(base).reduce((a, p) => (a[p.type] = p.value, a), {});
+  const y = +parts.year, m = +parts.month, d = +parts.day;
+  const fakeUtc = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+  const offsetMin = tzOffsetAt(fakeUtc, 'America/Los_Angeles');
+  return new Date(fakeUtc.getTime() + offsetMin * 60000);
 }
 function addDays(date, days) { const d = new Date(date); d.setDate(d.getDate() + days); return d; }
+
+function countdownFromPurchase(purchaseDate) {
+  if (!purchaseDate) return null;
+  const midnightLA = pstMidnight(purchaseDate);   // exactly 00:00 LA that day
+  const unlockAt   = addDays(midnightLA, 8);      // +8 days at 00:00 LA
+  const now = new Date();
+  const diff = unlockAt - now;
+  if (diff <= 0) return null;
+  const MS_H = 1000 * 60 * 60, MS_D = MS_H * 24;
+  const days  = Math.floor(diff / MS_D);
+  const hours = Math.floor((diff % MS_D) / MS_H);
+  return { days, hours };
+}
 
 // -------------------- Parsing helpers --------------------
 function parseFloatSafe(v) {
   if (typeof v === 'number') return v;
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : NaN;
+}
+function escapeHTML(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => (
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])
+  ));
 }
 
 // Condition bands (your exact thresholds)
@@ -33,15 +68,15 @@ function conditionOf(floatVal) {
   return                { label: 'Battle-Scarred',  cls: 'cond-bs' };
 }
 
-// Proportional pointer mapping along wear bar
+// Proportional pointer mapping along wear bar (FN 7.99%, MW 6.99%, FT 22.999%, WW 6.99%, BS 55%)
 function floatToBarPct(fRaw) {
   const f = Math.min(1, Math.max(0, parseFloatSafe(fRaw)));
 
   const LEN_FN = 0.0799;
-  const LEN_MW = 0.1499 - 0.08;
-  const LEN_FT = 0.37999 - 0.15;
-  const LEN_WW = 0.4499 - 0.38;
-  const LEN_BS = 1 - 0.45;
+  const LEN_MW = 0.1499 - 0.08;     // 0.0699
+  const LEN_FT = 0.37999 - 0.15;    // 0.22999
+  const LEN_WW = 0.4499 - 0.38;     // 0.0699
+  const LEN_BS = 1 - 0.45;          // 0.55
 
   const PCT_FN = 7.99;
   const PCT_MW = 6.99;
@@ -64,21 +99,6 @@ function floatToBarPct(fRaw) {
     const frac = (f - 0.45) / LEN_BS;
     return PCT_FN + PCT_MW + PCT_FT + PCT_WW + frac * PCT_BS;
   }
-}
-
-// Countdown (8 days after PST midnight)
-function countdownFromPurchase(purchaseDate) {
-  if (!purchaseDate) return null;
-  const base = toPSTMidnight(purchaseDate);
-  if (!base) return null;
-  const unlockAt = addDays(base, 8);
-  const now = new Date();
-  const diff = unlockAt - now;
-  if (diff <= 0) return null;
-  const MS_H = 1000 * 60 * 60, MS_D = MS_H * 24;
-  const days = Math.floor(diff / MS_D);
-  const hours = Math.floor((diff % MS_D) / MS_H);
-  return { days, hours };
 }
 
 // -------------------- Category + Kato14 --------------------
@@ -123,16 +143,15 @@ function showModalImage(src) {
 }
 
 // -------------------- Normalization --------------------
-// Convert any raw row into a consistent shape our renderer expects
 function normalizeItem(raw) {
   return {
-    name: raw.name ?? raw.Name ?? raw.Item ?? '',
-    special: raw.special ?? raw['Special'] ?? raw['Special Characteristics'] ?? '',
-    float: raw.float ?? raw.Float ?? raw['Float Value'] ?? raw['Wear'] ?? NaN,
-    image: raw.image ?? raw.Image ?? raw['Image'] ?? raw['Image URL'] ?? 'assets/chicken.png',
-    include: raw.include ?? raw.Include ?? raw.show ?? raw.Show ?? raw.F,
-    status: raw.status ?? raw.Status ?? raw.G ?? '',
-    purchaseDate: raw.purchaseDate ?? raw.Date ?? raw['Date of Purchase'] ?? raw['Purchased'] ?? ''
+    name:        raw.name ?? raw.Name ?? raw.Item ?? '',
+    special:     raw.special ?? raw['Special'] ?? raw['Special Characteristics'] ?? '',
+    float:       raw.float ?? raw.Float ?? raw['Float Value'] ?? raw['Wear'] ?? NaN,
+    image:       raw.image ?? raw.Image ?? raw['Image'] ?? raw['Image URL'] ?? 'assets/chicken.png',
+    include:     raw.include ?? raw.Include ?? raw.show ?? raw.Show ?? raw.F,
+    status:      raw.status ?? raw.Status ?? raw.G ?? '',
+    purchaseDate:raw.purchaseDate ?? raw.Date ?? raw['Date of Purchase'] ?? raw['Purchased'] ?? ''
   };
 }
 
@@ -145,7 +164,7 @@ function createCard(item) {
   const card = document.createElement('div');
   card.className = 'card';
 
-  // Title
+  // Title (centered via CSS)
   const title = document.createElement('h3');
   title.className = 'card-title';
   title.textContent = item.name || '-';
@@ -209,21 +228,21 @@ function createCard(item) {
 
   card.appendChild(wearWrap);
 
-  // Special
+  // Special (bold label)
   if (item.special) {
     const specEl = document.createElement('div');
     specEl.className = 'special';
-    specEl.textContent = `Special: ${item.special}`;
+    specEl.innerHTML = `<strong>Special:</strong> ${escapeHTML(item.special)}`;
     card.appendChild(specEl);
   }
 
-  // Trade status (line at bottom)
+  // Trade lock (bold label + "remaining")
   const trade = document.createElement('div');
   trade.className = 'trade';
   if (locked) {
-    trade.textContent = `Trade locked for ${countdown.days} days ${countdown.hours} hours`;
+    trade.innerHTML = `<strong>Trade lock:</strong> ${countdown.days} days ${countdown.hours} hours remaining`;
   } else {
-    trade.textContent = 'Unlocked';
+    trade.innerHTML = `<strong>Trade lock:</strong> none`;
   }
   card.appendChild(trade);
 
@@ -254,7 +273,7 @@ function renderCards(rawData, filters) {
     );
   }
 
-  // Category & Kato14 (non-exclusive tagging)
+  // Category & Kato14
   if (filters.category && filters.category !== 'All') {
     list = list.filter(it => {
       const cat = getCategory(it.name);
