@@ -335,6 +335,67 @@ select.control { padding-right: 1.75rem; }
   border-radius: .5rem;
   box-shadow: 0 12px 40px rgba(0,0,0,.6);
 }
+/* New card layout */
+.card h3 {
+  margin: 0 0 .25rem;
+  font-size: 1rem;
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .5rem;
+}
+
+.badge {
+  padding: .2rem .4rem;
+  border-radius: .3rem;
+  font-size: .8rem;
+  font-weight: bold;
+}
+.badge.locked { background: #922; color: #fff; }
+.badge.unlocked { background: #292; color: #fff; }
+
+.condition {
+  font-size: .85rem;
+  font-weight: bold;
+}
+.condition.factory-new { color: darkgreen; }
+.condition.minimal-wear { color: lightgreen; }
+.condition.field-tested { color: goldenrod; }
+.condition.well-worn { color: #e67e22; }
+.condition.battle-scarred { color: darkred; }
+
+.wear-wrapper {
+  margin: .5rem 0;
+}
+.wear-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(to right, darkgreen, lightgreen, goldenrod, #e67e22, darkred);
+}
+.wear-pointer {
+  position: absolute;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid white;
+}
+.wear-value {
+  font-size: .75rem;
+  text-align: center;
+  margin-top: .25rem;
+  opacity: .8;
+}
+
+.special, .trade {
+  font-size: .8rem;
+  margin-top: .25rem;
+}
 
 
 
