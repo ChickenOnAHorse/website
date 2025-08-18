@@ -30,7 +30,7 @@
 
       { "id": "6",  "title": "Nova | Graphite 4x HR K14 Paper",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova.png" },
       { "id": "7",  "title": "UMP-45 | Caramel 4x VP K14 Paper",  "x": 45.2, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/ump.png" },
-      { "id": "8",  "title": "MAG-7 | Foresight",  "x": 45.2, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/mag7.png" },
+      { "id": "8",  "title": "MAG-7 | Bulldozer 4x Mousesports K14 Paper",  "x": 45.2, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/mag72.png" },
       { "id": "9",  "title": "P90 | Death by Kitty 1x LDLC K14 Holo",  "x": 45.2, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
       { "id": "10", "title": "MP9 | Airlock 4x Dignitas K14 Paper", "x": 45.2, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/mp9.png" },
 
@@ -42,6 +42,7 @@
     ]
   }
 }
+
 
 
 
