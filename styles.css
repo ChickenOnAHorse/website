@@ -459,6 +459,39 @@ select.control { padding-right: 1.75rem; }
     #8b1f1f 44.969%,#8b1f1f 100%      /* BS */
   );
 }
+/* coah/styles.css patch v2025-08-17T10:22Z — center title, flip pointer, bold labels */
+
+/* Center the card title */
+.card-title{ margin:0 0 .35rem; font-size:1rem; text-align:center; }
+
+/* Proportional wear bar color bands */
+.wear-bar{
+  position:relative; height:10px; border-radius:6px;
+  background: linear-gradient(
+    90deg,
+    #0a6a0a 0%,     #0a6a0a 7.99%,     /* FN 0–0.0799 */
+    #3dbb3d 7.99%,  #3dbb3d 14.98%,    /* MW 0.08–0.1499 */
+    #d1a81d 14.98%, #d1a81d 37.979%,   /* FT 0.15–0.37999 */
+    #d17a3a 37.979%,#d17a3a 44.969%,   /* WW 0.38–0.4499 */
+    #8b1f1f 44.969%,#8b1f1f 100%       /* BS 0.45–1 (≈55%) */
+  );
+}
+
+/* Pointer points DOWN and touches the bar */
+.wear-pointer{
+  position:absolute;
+  left:0; top:100%;
+  transform: translateX(-50%);
+  width:0; height:0;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-top:9px solid #fff;    /* ▼ */
+  margin-top: 2px;              /* tiny breathing room */
+}
+
+/* Bold labels for Special / Trade lock */
+.special strong, .trade strong { font-weight:700; }
+.trade { margin-top:.25rem; }
 
 
 
