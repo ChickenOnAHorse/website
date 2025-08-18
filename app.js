@@ -1,4 +1,4 @@
-/* coah/app.js v2025-08-17T09:07Z – Netlify data, Guns+Kato14, stable card layout */
+/* coah/app.js v2025-08-17T09:42Z — robust normalization + locked card spec */
 
 // -------------------- Data source --------------------
 const API_URL = '/.netlify/functions/fetch-items';
@@ -11,7 +11,6 @@ function toPSTMidnight(dateLike) {
     timeZone: 'America/Los_Angeles',
     year: 'numeric', month: '2-digit', day: '2-digit'
   }).formatToParts(d).reduce((a, p) => (a[p.type] = p.value, a), {});
-  // Construct as UTC midnight for that PST date; good enough for UI countdown
   return new Date(`${parts.year}-${parts.month}-${parts.day}T00:00:00Z`);
 }
 function addDays(date, days) { const d = new Date(date); d.setDate(d.getDate() + days); return d; }
@@ -22,67 +21,57 @@ function parseFloatSafe(v) {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : NaN;
 }
+
+// Condition bands (your exact thresholds)
 function conditionOf(floatVal) {
   const f = parseFloatSafe(floatVal);
   if (!Number.isFinite(f)) return { label: '-', cls: 'cond-unknown' };
-
-  if (f <= 0.0799) return { label: 'Factory New',  cls: 'cond-fn' };     // 0–0.0799
-  if (f <= 0.1499) return { label: 'Minimal Wear', cls: 'cond-mw' };     // 0.08–0.1499
-  if (f <= 0.37999) return { label: 'Field-Tested', cls: 'cond-ft' };    // 0.15–0.37999
-  if (f <= 0.4499) return { label: 'Well-Worn',     cls: 'cond-ww' };    // 0.38–0.4499
-  return                 { label: 'Battle-Scarred', cls: 'cond-bs' };     // 0.45–1
+  if (f <= 0.0799)  return { label: 'Factory New',  cls: 'cond-fn' };
+  if (f <= 0.1499)  return { label: 'Minimal Wear', cls: 'cond-mw' };
+  if (f <= 0.37999) return { label: 'Field-Tested', cls: 'cond-ft' };
+  if (f <= 0.4499)  return { label: 'Well-Worn',    cls: 'cond-ww' };
+  return                { label: 'Battle-Scarred',  cls: 'cond-bs' };
 }
-// Map a raw float (0–1) into % along the proportional wear bar
+
+// Proportional pointer mapping along wear bar
 function floatToBarPct(fRaw) {
   const f = Math.min(1, Math.max(0, parseFloatSafe(fRaw)));
 
-  // segment lengths in FLOAT domain
-  const LEN_FN = 0.0799;          // 7.99%
-  const LEN_MW = 0.1499 - 0.08;   // 0.0699 -> 6.99%
-  const LEN_FT = 0.37999 - 0.15;  // 0.22999 -> 22.999%
-  const LEN_WW = 0.4499 - 0.38;   // 0.0699 -> 6.99%
-  const LEN_BS = 1 - 0.45;        // 0.55   -> 55%
+  const LEN_FN = 0.0799;
+  const LEN_MW = 0.1499 - 0.08;
+  const LEN_FT = 0.37999 - 0.15;
+  const LEN_WW = 0.4499 - 0.38;
+  const LEN_BS = 1 - 0.45;
 
-  // corresponding BAR widths in %
   const PCT_FN = 7.99;
   const PCT_MW = 6.99;
   const PCT_FT = 22.999;
   const PCT_WW = 6.99;
   const PCT_BS = 55.0;
 
-  const CUT_FN = 0.0799;
-  const CUT_MW = 0.1499;
-  const CUT_FT = 0.37999;
-  const CUT_WW = 0.4499;
-
-  if (f <= CUT_FN)  return (f / LEN_FN) * PCT_FN;
-
-  if (f <= CUT_MW)  {
+  if (f <= 0.0799) {
+    return (f / LEN_FN) * PCT_FN;
+  } else if (f <= 0.1499) {
     const frac = (f - 0.08) / LEN_MW;
     return PCT_FN + frac * PCT_MW;
-  }
-
-  if (f <= CUT_FT)  {
+  } else if (f <= 0.37999) {
     const frac = (f - 0.15) / LEN_FT;
     return PCT_FN + PCT_MW + frac * PCT_FT;
-  }
-
-  if (f <= CUT_WW)  {
+  } else if (f <= 0.4499) {
     const frac = (f - 0.38) / LEN_WW;
     return PCT_FN + PCT_MW + PCT_FT + frac * PCT_WW;
+  } else {
+    const frac = (f - 0.45) / LEN_BS;
+    return PCT_FN + PCT_MW + PCT_FT + PCT_WW + frac * PCT_BS;
   }
-
-  // BS
-  const frac = (f - 0.45) / LEN_BS;
-  return PCT_FN + PCT_MW + PCT_FT + PCT_WW + frac * PCT_BS;
 }
 
-}
+// Countdown (8 days after PST midnight)
 function countdownFromPurchase(purchaseDate) {
   if (!purchaseDate) return null;
   const base = toPSTMidnight(purchaseDate);
   if (!base) return null;
-  const unlockAt = addDays(base, 8); // exactly 8 days later at PST midnight
+  const unlockAt = addDays(base, 8);
   const now = new Date();
   const diff = unlockAt - now;
   if (diff <= 0) return null;
@@ -133,17 +122,25 @@ function showModalImage(src) {
   document.addEventListener('keydown', onKey);
 }
 
-// -------------------- Card --------------------
-function createCard(raw) {
-  const name = raw.name || raw.Name || '-';
-  const special = raw.special || raw['Special'] || raw['Special Characteristics'] || '';
-  const floatVal = raw.float ?? raw.Float;
-  const imgSrc = raw.image || raw.Image || 'assets/chicken.png';
-  const purchase = raw.purchaseDate || raw.Date;
+// -------------------- Normalization --------------------
+// Convert any raw row into a consistent shape our renderer expects
+function normalizeItem(raw) {
+  return {
+    name: raw.name ?? raw.Name ?? raw.Item ?? '',
+    special: raw.special ?? raw['Special'] ?? raw['Special Characteristics'] ?? '',
+    float: raw.float ?? raw.Float ?? raw['Float Value'] ?? raw['Wear'] ?? NaN,
+    image: raw.image ?? raw.Image ?? raw['Image'] ?? raw['Image URL'] ?? 'assets/chicken.png',
+    include: raw.include ?? raw.Include ?? raw.show ?? raw.Show ?? raw.F,
+    status: raw.status ?? raw.Status ?? raw.G ?? '',
+    purchaseDate: raw.purchaseDate ?? raw.Date ?? raw['Date of Purchase'] ?? raw['Purchased'] ?? ''
+  };
+}
 
-  const countdown = countdownFromPurchase(purchase);
+// -------------------- Card --------------------
+function createCard(item) {
+  const cond = conditionOf(item.float);
+  const countdown = countdownFromPurchase(item.purchaseDate);
   const locked = !!countdown;
-  const cond = conditionOf(floatVal);
 
   const card = document.createElement('div');
   card.className = 'card';
@@ -151,7 +148,7 @@ function createCard(raw) {
   // Title
   const title = document.createElement('h3');
   title.className = 'card-title';
-  title.textContent = name;
+  title.textContent = item.name || '-';
   card.appendChild(title);
 
   // Row: badge + condition
@@ -177,8 +174,8 @@ function createCard(raw) {
   const img = document.createElement('img');
   img.loading = 'lazy';
   img.decoding = 'async';
-  img.alt = name;
-  img.src = imgSrc;
+  img.alt = item.name || '-';
+  img.src = item.image || 'assets/chicken.png';
 
   const mag = document.createElement('button');
   mag.className = 'magnify-btn';
@@ -199,25 +196,24 @@ function createCard(raw) {
 
   const pointer = document.createElement('div');
   pointer.className = 'wear-pointer';
-  const f = parseFloatSafe(floatVal);
-const leftPct = Number.isFinite(f) ? floatToBarPct(f) : 0;
-pointer.style.left = `${leftPct}%`;
+  const leftPct = Number.isFinite(parseFloatSafe(item.float)) ? floatToBarPct(item.float) : 0;
+  pointer.style.left = `${leftPct}%`;
   wearBar.appendChild(pointer);
 
   wearWrap.appendChild(wearBar);
 
   const wearVal = document.createElement('div');
   wearVal.className = 'wear-value';
-  wearVal.textContent = Number.isFinite(f) ? f.toFixed(10) : '-';
+  wearVal.textContent = Number.isFinite(parseFloatSafe(item.float)) ? parseFloat(item.float).toFixed(10) : '-';
   wearWrap.appendChild(wearVal);
 
   card.appendChild(wearWrap);
 
   // Special
-  if (special) {
+  if (item.special) {
     const specEl = document.createElement('div');
     specEl.className = 'special';
-    specEl.textContent = `Special: ${special}`;
+    specEl.textContent = `Special: ${item.special}`;
     card.appendChild(specEl);
   }
 
@@ -235,36 +231,34 @@ pointer.style.left = `${leftPct}%`;
 }
 
 // -------------------- Rendering with filters --------------------
-function renderCards(data, filters) {
+function renderCards(rawData, filters) {
   const grid = document.getElementById('cards-container');
   grid.innerHTML = '';
 
-  let list = data.slice();
+  // normalize first
+  let list = rawData.map(normalizeItem);
 
-  // STRICT filter: F must be TRUE, G must be blank
+  // STRICT filter: F must be TRUE, G must be blank, must have a name
   list = list.filter(it => {
-    const includeRaw = it.include ?? it.Include ?? it.show ?? it.Show ?? it.F;
-    const gRaw = it.sold ?? it.Sold ?? it.Status ?? it.G;
-    const include = (includeRaw === true) || (typeof includeRaw === 'string' && includeRaw.trim().toLowerCase() === 'true');
-    const gBlank  = (gRaw === '' || gRaw === null || typeof gRaw === 'undefined');
-    const hasName = !!(it.name || it.Name);
-    return include && gBlank && hasName;
+    const include = (it.include === true) || (typeof it.include === 'string' && it.include.trim().toLowerCase() === 'true');
+    const gBlank  = (it.status === '' || it.status === null || typeof it.status === 'undefined');
+    return include && gBlank && !!it.name;
   });
 
   // Search
   if (filters.search) {
     const q = filters.search.toLowerCase();
     list = list.filter(it =>
-      (it.name || it.Name || '').toLowerCase().includes(q) ||
-      (it.special || it['Special'] || it['Special Characteristics'] || '').toLowerCase().includes(q)
+      (it.name || '').toLowerCase().includes(q) ||
+      (it.special || '').toLowerCase().includes(q)
     );
   }
 
-  // Category & Kato14
+  // Category & Kato14 (non-exclusive tagging)
   if (filters.category && filters.category !== 'All') {
     list = list.filter(it => {
-      const cat = getCategory(it.name || it.Name || '');
-      const kato = isKato14(it.special || it['Special'] || it['Special Characteristics'] || '');
+      const cat = getCategory(it.name);
+      const kato = isKato14(it.special);
       if (filters.category === 'Kato14') return kato;
       return cat === filters.category;
     });
@@ -272,14 +266,14 @@ function renderCards(data, filters) {
 
   // Only unlocked
   if (filters.onlyUnlocked) {
-    list = list.filter(it => !countdownFromPurchase(it.purchaseDate || it.Date));
+    list = list.filter(it => !countdownFromPurchase(it.purchaseDate));
   }
 
   // Sort
   if (filters.sort === 'Newest' || filters.sort === 'Oldest') {
     list.sort((a, b) => {
-      const da = new Date(a.purchaseDate || a.Date || 0).getTime();
-      const db = new Date(b.purchaseDate || b.Date || 0).getTime();
+      const da = new Date(a.purchaseDate || 0).getTime();
+      const db = new Date(b.purchaseDate || 0).getTime();
       return da - db;
     });
     if (filters.sort === 'Newest') list.reverse();
