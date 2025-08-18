@@ -1,18 +1,22 @@
+<!-- coah/index.html v2025-08-17T06:40Z – Filters: Weapons→Guns, add Kato14 -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chicken on a Horse — CS Skins</title>
-  <meta name="description" content="Browse available Counter-Strike skins for sale." />
+  <title>Skins for Sale/Trade — Chicken on a Horse</title>
   <link rel="stylesheet" href="styles.css" />
+  <meta name="color-scheme" content="dark light" />
 </head>
 <body>
+  <!-- Accessible skip link (styled in styles.css to only show on focus) -->
   <a class="skip-link" href="#main">Skip to content</a>
 
+  <!-- Site Header / Nav -->
   <header class="site-header">
     <div class="container header-inner">
       <nav class="top-nav" aria-label="Primary">
+        <!-- Logo links home -->
         <a href="index.html" class="logo" aria-label="Home">🐔🐴</a>
         <div class="nav-links">
           <a href="collection.html" class="nav-link">My Collection</a>
@@ -24,93 +28,51 @@
     </div>
   </header>
 
-  <main id="main">
-    <section id="hero" class="hero container">
-      <h1>CS Skins from the Farm</h1>
-      <p class="lead">Fresh picks, simple listings, no fuss.</p>
-    </section>
+  <!-- Main -->
+  <main id="main" class="container section">
+    <h1>Skins for Sale/Trade</h1>
 
-    <section id="available" class="section container">
-      <div class="section-head">
-        <h2>Skins for Sale/Trade</h2>
+    <!-- Controls bar -->
+    <section class="controls">
+      <div class="controls-row">
+        <!-- Category -->
+        <label for="category-filter" class="control-label">Category</label>
+        <select id="category-filter" class="control">
+          <option value="All">All</option>
+          <option value="Knives">Knives</option>
+          <option value="Gloves">Gloves</option>
+          <option value="Guns">Guns</option>        <!-- renamed -->
+          <option value="Other">Other</option>
+          <option value="Kato14">Kato14</option>    <!-- new -->
+        </select>
 
-        <!-- FILTERS -->
-        <div class="filters" aria-label="Filters">
-          <fieldset class="filter-categories">
-            <legend>Category</legend>
-            <label><input type="checkbox" id="cat-knives" checked> Knives</label>
-            <label><input type="checkbox" id="cat-gloves" checked> Gloves</label>
-            <label><input type="checkbox" id="cat-weapons" checked> Weapons</label>
-            <label><input type="checkbox" id="cat-other" checked> Other</label>
-          </fieldset>
+        <!-- Sort -->
+        <label for="sort-filter" class="control-label">Sort</label>
+        <select id="sort-filter" class="control">
+          <option value="Newest">Newest</option>
+          <option value="Oldest">Oldest</option>
+        </select>
 
-          <div class="filter-sort">
-            <label>
-              <span class="sr-only">Sort</span>
-              <select id="sort">
-                <option value="newest" selected>Newest</option>
-                <option value="oldest">Oldest</option>
-              </select>
-            </label>
-            <label class="only-unlocked">
-              <input type="checkbox" id="only-unlocked" />
-              Only unlocked
-            </label>
-          </div>
-
-          <!-- live count -->
-          <div id="count" class="count">Showing 0 items</div>
-        </div>
-
-        <label class="search-wrap" for="search">
-          <input id="search" type="search" placeholder="Search by title…" autocomplete="off" />
-          <span class="kbd">/</span>
+        <!-- Only unlocked -->
+        <label class="control-checkbox">
+          <input type="checkbox" id="unlocked-filter" />
+          <span>Only unlocked</span>
         </label>
+
+        <!-- Search -->
+        <label for="search-bar" class="visually-hidden">Search</label>
+        <input id="search-bar" class="control search" type="search" placeholder="Search skins…" autocomplete="off" />
       </div>
 
-      <div id="grid" class="grid" role="list" aria-busy="true" aria-live="polite"></div>
-
-      <template id="card-tpl">
-        <article class="card" role="listitem">
-          <div class="card-head">
-            <h3 class="item-name"></h3>
-          </div>
-          <div class="thumb-wrap">
-            <img class="thumb" alt="" loading="lazy" />
-            <!-- zoom button (opens global lightbox) -->
-            <button class="zoom-btn" type="button" title="View full image" aria-label="View full image">🔍</button>
-          </div>
-          <dl class="meta">
-            <div>
-              <dt>Status</dt>
-              <dd class="status-line"></dd>
-            </div>
-            <div class="available-wrap">
-              <dt>Available on</dt>
-              <dd class="available-date"></dd>
-            </div>
-            <div>
-              <dt>Float</dt>
-              <dd class="float"></dd>
-            </div>
-            <div class="special-wrap">
-              <dt>Special</dt>
-              <dd class="special"></dd>
-            </div>
-          </dl>
-        </article>
-      </template>
-
-      <p id="status" class="status"></p>
+      <!-- Count -->
+      <div id="item-count" class="item-count">Showing 0 items</div>
     </section>
+
+    <!-- Cards grid -->
+    <section id="cards-container" class="grid" aria-live="polite"></section>
   </main>
 
-  <!-- GLOBAL LIGHTBOX -->
-  <div id="lightbox" class="lightbox hidden" aria-modal="true" role="dialog" aria-label="Image preview">
-    <button id="lightbox-close" class="lightbox-close" aria-label="Close preview">×</button>
-    <img id="lightbox-img" alt="">
-  </div>
-
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <p>© <span id="year"></span> Chicken on a Horse</p>
@@ -118,6 +80,7 @@
     </div>
   </footer>
 
+  <!-- Scripts -->
   <script src="app.js" defer></script>
 </body>
 </html>
