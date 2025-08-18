@@ -1,87 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>About - ChickenOnAHorse</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css"/>
+
   <style>
-    /* FAQ styles – you can move these into styles.css */
+    /* ===== Navbar (lightweight defaults; merge into styles.css if you prefer) ===== */
+    .navbar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 20px;
+      background: var(--bg-900, #121212);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .nav-logo { color: var(--text-100,#fff); text-decoration: none; font-weight: 700; letter-spacing: .2px; }
+    .nav-links { display: flex; align-items: center; gap: 18px; }
+    .nav-links a {
+      color: var(--text-300,#cfcfcf); text-decoration: none;
+      padding: 8px 6px; border-radius: 10px; transition: background .2s, color .2s, transform .15s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,.06); color: #fff; transform: translateY(-1px); }
+    .nav-links a.active { color: #fff; background: rgba(255,255,255,.12); }
+    .mode-toggle {
+      background: transparent; color: var(--text-100,#fff); cursor: pointer;
+      border: 1px solid rgba(255,255,255,.15); padding: 8px 10px; border-radius: 10px;
+    }
+    .mode-toggle:hover { background: rgba(255,255,255,.06); }
+    @media (max-width: 720px) {
+      .navbar { flex-wrap: wrap; gap: 10px; }
+      .nav-links { width: 100%; justify-content: flex-end; }
+    }
+
+    /* ===== FAQ styles (you can move into styles.css) ===== */
     .faq {
-      max-width: 800px;
-      margin: 60px auto;
-      padding: 0 20px;
+      max-width: 800px; margin: 60px auto; padding: 0 20px;
     }
-
     .faq h1 {
-      text-align: center;
-      margin-bottom: 40px;
-      font-size: 2rem;
+      text-align: center; margin-bottom: 40px; font-size: 2rem;
     }
-
     .faq-item {
-      margin-bottom: 30px;
-      padding: 20px;
-      border-radius: 12px;
-      background: #1e1e1e;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      margin-bottom: 30px; padding: 20px; border-radius: 12px;
+      background: #1e1e1e; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
     }
-
     .faq-item .question {
-      font-weight: bold;
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-      color: #ffffff;
+      font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; color: #ffffff;
     }
-
     .faq-item .answer {
-      color: #cccccc;
-      line-height: 1.5;
+      color: #cccccc; line-height: 1.6;
     }
   </style>
 </head>
 <body>
-  <!-- Navbar (reuse your existing one if included globally) -->
-  <nav>
-    <a href="index.html" class="logo">🐔🐴 ChickenOnAHorse</a>
-    <ul>
-      <li><a href="collection.html">My Collection</a></li>
-      <li><a href="index.html">Skins for Sale/Trade</a></li>
-      <li><a href="about.html" class="active">About</a></li>
-    </ul>
-  </nav>
 
+  <!-- Standardized Navbar -->
+  <header class="navbar">
+    <a href="index.html" class="nav-logo" aria-label="ChickenOnAHorse Home">🐔🐴 ChickenOnAHorse</a>
+
+    <nav class="nav-links" aria-label="Primary">
+      <a href="collection.html" data-nav="collection">My Collection</a>
+      <a href="index.html" data-nav="trade">Skins for Sale/Trade</a>
+      <a href="about.html" data-nav="about">About</a>
+    </nav>
+
+    <button class="mode-toggle" type="button" aria-label="Toggle dark mode">
+      <span class="mode-icon">🌓</span>
+    </button>
+  </header>
+
+  <!-- About / FAQ -->
   <section class="faq">
     <h1>Frequently Asked Questions</h1>
-    
+
     <div class="faq-item">
-      <div class="question">Q:What is the origin of your name</div>
-      <div class="answer">A: It's quite a silly story but essentially when I first came back to CS:GO right before CS2 I was just rocking the name Chicken with a profile picture of a Chicken, essentially a shitpost name and profile picture.
-      I was playing a game on Cache, and the entire enemy team were coordinated and were all named "Horse on a Balcony", "Horse on a Car", etc. and so I was like okay well I want to join them. I looked up if there was a picture of a Chicken
-      on a Horse, and somehow found one. I swapped my name and my profile picture and the rest is history, I of course got my own profile picture done at some point down the line.</div>
-    </div>
-    
-    <div class="faq-item">
-      <div class="question">Q:What do you do for work?</div>
-      <div class="answer">A: I'm a scientist, I work in Vaccine development.</div>
+      <div class="question">Q: What is the origin of your name?</div>
+      <div class="answer">
+        A: It’s a silly story. When I first came back to CS:GO right before CS2, I was using the name “Chicken” with a chicken profile picture—basically a shitpost. I played a game on Cache and the entire enemy team had coordinated names like “Horse on a Balcony,” “Horse on a Car,” etc. I wanted to join in, searched for “Chicken on a Horse,” and found an image. I swapped my name and profile picture, and the rest is history. I eventually had my own profile picture made later on.
+      </div>
     </div>
 
     <div class="faq-item">
-      <div class="question">Q: How long have you been playing CS for?</div>
-      <div class="answer">A: I started playing CS:GO in 2017</div>
+      <div class="question">Q: What do you do for work?</div>
+      <div class="answer">A: I’m a scientist; I work in vaccine development.</div>
     </div>
 
     <div class="faq-item">
-      <div class="question">Q: How long have you collecting for?</div>
-      <div class="answer">A: I first collected when I started in 2017, then played again in 2020, then started again in mid 2023 and started building my current collection then. </div>
+      <div class="question">Q: How long have you been playing CS?</div>
+      <div class="answer">A: I started playing CS:GO in 2017.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="question">Q: How long have you been collecting?</div>
+      <div class="answer">A: I first collected in 2017, played again in 2020, and started building my current collection in mid-2023.</div>
     </div>
 
     <div class="faq-item">
       <div class="question">Q: What is your favorite skin that you own?</div>
-      <div class="answer">A: What is your favorite skin that you own? Definitely has to be the M4A4 Howl with iBuyPower best pos. Classic skin with a classic sticker, it's just an insane combo.</div>
+      <div class="answer">A: The M4A4 Howl with an iBuyPower best-position sticker. Classic skin + classic sticker — an insane combo.</div>
     </div>
   </section>
+
+  <!-- Active tab highlight + simple theme toggle (optional) -->
+  <script>
+    // Active tab highlighting
+    (function() {
+      const path = location.pathname.split('/').pop() || 'index.html';
+      const map = { 'index.html': 'trade', 'collection.html': 'collection', 'about.html': 'about' };
+      const key = map[path] || null;
+      if (key) document.querySelector(`.nav-links a[data-nav="${key}"]`)?.classList.add('active');
+    })();
+
+    // Dark/Light toggle; set html[data-theme] = 'dark'|'light'
+    (function() {
+      const btn = document.querySelector('.mode-toggle');
+      const root = document.documentElement;
+      const storageKey = 'coah-theme';
+      const setTheme = (t) => { root.dataset.theme = t; try { localStorage.setItem(storageKey, t); } catch {} };
+
+      // initialize from storage if present
+      const saved = (localStorage.getItem(storageKey) || '').trim();
+      if (saved) setTheme(saved);
+
+      btn?.addEventListener('click', () => {
+        const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+        setTheme(next);
+      });
+    })();
+  </script>
 </body>
 </html>
-
-
