@@ -479,6 +479,17 @@ select.control { padding-right: 1.75rem; }
   border-top: 9px solid #fff;   /* ▼ points downward */
   margin-bottom: 2px;           /* tiny breathing room */
 }
+/* Magnify button hover/focus polish */
+.magnify-btn{
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+.magnify-btn:hover,
+.magnify-btn:focus-visible{
+  transform: scale(1.06);
+  background-color: rgba(0,0,0,.72);
+  box-shadow: 0 2px 10px rgba(0,0,0,.35);
+  outline: none;
+}
 
 
 
