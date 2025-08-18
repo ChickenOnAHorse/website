@@ -1,4 +1,4 @@
-<!-- coah/index.html v2025-08-17T06:40Z – Filters: Weapons→Guns, add Kato14 -->
+<!-- coah/index.html v2025-08-17T07:22Z – restore classic header; Filters: Guns + Kato14 -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,14 +9,13 @@
   <meta name="color-scheme" content="dark light" />
 </head>
 <body>
-  <!-- Accessible skip link (styled in styles.css to only show on focus) -->
+  <!-- Keep the skip link for a11y; your styles.css should hide it until focused -->
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- Site Header / Nav -->
+  <!-- Header / Nav (classic layout: logo left, links right) -->
   <header class="site-header">
     <div class="container header-inner">
       <nav class="top-nav" aria-label="Primary">
-        <!-- Logo links home -->
         <a href="index.html" class="logo" aria-label="Home">🐔🐴</a>
         <div class="nav-links">
           <a href="collection.html" class="nav-link">My Collection</a>
@@ -28,11 +27,10 @@
     </div>
   </header>
 
-  <!-- Main -->
   <main id="main" class="container section">
     <h1>Skins for Sale/Trade</h1>
 
-    <!-- Controls bar -->
+    <!-- Controls row (same IDs as your app.js expects) -->
     <section class="controls">
       <div class="controls-row">
         <!-- Category -->
@@ -41,9 +39,9 @@
           <option value="All">All</option>
           <option value="Knives">Knives</option>
           <option value="Gloves">Gloves</option>
-          <option value="Guns">Guns</option>        <!-- renamed -->
+          <option value="Guns">Guns</option>          <!-- renamed -->
+          <option value="Kato14">Kato14</option>      <!-- new -->
           <option value="Other">Other</option>
-          <option value="Kato14">Kato14</option>    <!-- new -->
         </select>
 
         <!-- Sort -->
@@ -64,7 +62,7 @@
         <input id="search-bar" class="control search" type="search" placeholder="Search skins…" autocomplete="off" />
       </div>
 
-      <!-- Count -->
+      <!-- Item count -->
       <div id="item-count" class="item-count">Showing 0 items</div>
     </section>
 
@@ -72,7 +70,6 @@
     <section id="cards-container" class="grid" aria-live="polite"></section>
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <p>© <span id="year"></span> Chicken on a Horse</p>
