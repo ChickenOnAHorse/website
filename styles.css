@@ -376,20 +376,6 @@ select.control { padding-right: 1.75rem; }
   border-radius: 5px;
   background: linear-gradient(to right, darkgreen, lightgreen, goldenrod, #e67e22, darkred);
 }
-/* Wear bar pointer: point DOWN, tip touches the bar */
-.wear-pointer{
-  position: absolute;
-  left: 0;               /* we set left% via JS */
-  top: 100%;             /* sit just below the bar edge */
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 9px solid #fff;  /* ▼ points downward */
-  /* optional tiny gap: */
-  margin-top: 2px;
-}
-
 .wear-value {
   font-size: .75rem;
   text-align: center;
@@ -477,21 +463,23 @@ select.control { padding-right: 1.75rem; }
   );
 }
 
-/* Pointer points DOWN and touches the bar */
-.wear-pointer{
-  position:absolute;
-  left:0; top:100%;
-  transform: translateX(-50%);
-  width:0; height:0;
-  border-left:6px solid transparent;
-  border-right:6px solid transparent;
-  border-top:9px solid #fff;    /* ▼ */
-  margin-top: 2px;              /* tiny breathing room */
-}
-
 /* Bold labels for Special / Trade lock */
 .special strong, .trade strong { font-weight:700; }
 .trade { margin-top:.25rem; }
+
+/* Fix: pointer sits ABOVE the bar, pointing DOWN, tip touching the bar */
+.wear-pointer{
+  position: absolute;
+  left: 0;                 /* set by JS as left:% */
+  bottom: 100%;            /* place the triangle above the bar */
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 9px solid #fff;   /* ▼ points downward */
+  margin-bottom: 2px;           /* tiny breathing room */
+}
+
 
 
 
