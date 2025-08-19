@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "debug": true,
+  "debug": false,
   "hotspots": {
     "gold": [
       { "id": "1",  "title": "Glock-18 | Death Rattle 1x NiP K14 Holo",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/glock.png" },
@@ -46,6 +46,7 @@
     ]
   }
 }
+
 
 
 
