@@ -20,8 +20,6 @@
       { "id": "13", "title": "Galil AR | Aqua Terrace", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil.png" },
       { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
-
-      { "id": "16", "title": "Specialist Tiger Strikes with a Karambit Lore", "x": 85, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ],
     "blue": [
       { "id": "1",  "title": "USP-S | Serum 3x Reason 1x HR K14 Paper",  "x": 33.9, "y": 7.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/usp.png" },
@@ -41,11 +39,10 @@
       { "id": "13", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
       { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/famas.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
-
-      { "id": "16", "title": "Specialist Tiger Strikes with a Karambit Lore", "x": 5.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ]
   }
 }
+
 
 
 
