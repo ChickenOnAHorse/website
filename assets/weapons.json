@@ -22,7 +22,7 @@
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ],
     "blue": [
-      { "id": "1",  "title": "USP-S | Serum 4x Reason K14 Paper",  "x": 33.9, "y": 7.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/usp.png" },
+      { "id": "1",  "title": "USP-S | Serum 3x Reason 1x HR K14 Paper",  "x": 33.9, "y": 7.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/usp.png" },
       { "id": "2",  "title": "Dual Berettas | Panther 4x Complexity K14 Paper",  "x": 33.9, "y": 27.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/dualies.png" },
       { "id": "3",  "title": "P250 | Steel Disruption 4x Complexity K14 Holo",  "x": 33.9, "y": 45.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/p250.png" },
       { "id": "4",  "title": "Five-SeveN | Case Hardened Tier 1 #670",  "x": 33.9, "y": 62.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/5-7.png" },
@@ -42,6 +42,7 @@
     ]
   }
 }
+
 
 
 
