@@ -21,7 +21,7 @@
       { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Mousesports K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
 
-      { "id": "15", "title": "Tiger strikes with da kara lore", "x": 70.3, "y": 25.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
+      { "id": "16", "title": "Tiger strikes with da kara lore", "x": 70.3, "y": 25.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ],
     "blue": [
       { "id": "1",  "title": "USP-S | Serum 3x Reason 1x HR K14 Paper",  "x": 33.9, "y": 7.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/usp.png" },
@@ -44,6 +44,7 @@
     ]
   }
 }
+
 
 
 
