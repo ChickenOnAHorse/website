@@ -1,16 +1,18 @@
 /* Password gate + live balance dashboard
-   - Fetches events from your Apps Script Web App
-   - Sites: CSFloat (lock 9d, horizon 9d) and YouPin898 (lock 8d, horizon 8d)
-   - Dates from sheet are treated as PT calendar days ("YYYY-MM-DD")
+   - Fetches events + corrections from your Apps Script Web App
+   - Sites:
+       CSFloat  -> lock 9 days, horizon 9 days
+       YouPin   -> lock 8 days, horizon 8 days
+   - Dates from sheet are PT calendar days (YYYY-MM-DD).
 */
 
 (() => {
   // ======== PASSWORD CONFIG ========
   const PASSWORD_SHA256_HEX = "e0fe87b9ef1bd5b345269890a4f357dd7e531e7bba307ac691567600a049897f";
   const SESSION_KEY = "balance_authed";
-  const DEBUG_LOG_HASH = false; // turn on if you want to verify your hash in console
+  const DEBUG_LOG_HASH = false;
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbzbh85cDb-igr2sahY3o9U14lqLDZI04mUNbkGumRdINbXF-NNK605wlx00dWjtLx5g/exec"; // <-- paste your /exec URL
+  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbyyuQUaKYNC1iWwCdMDoKcP3_n9vsCfu5WfljytAEIyI7RLs_TaGodMNbKhAMnCocd4/exec"; // <-- set your /exec URL
   // =================================
 
   // ---------- Password gate ----------
@@ -27,7 +29,7 @@
     const cryptoOK = (typeof window.crypto !== 'undefined') && (typeof window.crypto.subtle !== 'undefined');
     if (!cryptoOK) warn.style.display = 'block';
 
-    if (sessionStorage.getItem(SESSION_KEY) === '1') { showApp(); return; }
+    if (sessionStorage.getItem(SESSION_KEY) === '1') { showApp(); loadAndRender(); return; }
 
     async function tryLogin(e){
       if (e) e.preventDefault();
@@ -58,20 +60,18 @@
   const fmtUSD  = new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 });
   const fmtDate = new Intl.DateTimeFormat('en-US', { timeZone: PT_TZ, month:'short', day:'2-digit', year:'2-digit' });
 
-  function dayKeyFromYMD(ymd){ // ymd like "2025-08-17"
-    const [y,m,d] = ymd.split('-').map(n=>parseInt(n,10));
-    return Date.UTC(y, m-1, d);
+  // Robust “today in PT” as a UTC key (never off by DST)
+  function todayKeyPT() {
+    const nowPT = new Date(new Date().toLocaleString('en-US', { timeZone: PT_TZ }));
+    const y = nowPT.getFullYear(), m = nowPT.getMonth(), d = nowPT.getDate();
+    return Date.UTC(y, m, d);
   }
-  function todayKeyPT(){
-    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: PT_TZ, year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
-    const [y,m,d] = parts.split('-').map(n=>parseInt(n,10));
-    return Date.UTC(y, m-1, d);
-  }
+  function dayKeyFromYMD(ymd){ const [y,m,d] = ymd.split('-').map(n=>parseInt(n,10)); return Date.UTC(y, m-1, d); }
   function addDaysKey(keyUTC, n){ return keyUTC + n*86400000; }
   function labelFromKey(keyUTC){ return fmtDate.format(new Date(keyUTC)); }
   function sum(a){ return a.reduce((x,y)=>x+y,0); }
 
-  function computeForSite(siteKey, events){
+  function computeForSite(siteKey, events, corrections){
     const { lockDays, horizon } = SITE[siteKey];
     const todayKey = todayKeyPT();
 
@@ -83,35 +83,41 @@
     const pendingCredits  = []; // {amount, unlockKey}
 
     for (const c of credits){
-      const eventKey = dayKeyFromYMD(c.date); // dates are PT calendar days
-      const unlockKey = addDaysKey(eventKey, lockDays);
+      const eventKey  = dayKeyFromYMD(c.date);             // PT date from sheet
+      const unlockKey = addDaysKey(eventKey, lockDays);    // PT midnight after N days
       if (unlockKey <= todayKey) unlockedCredits.push(c.amount);
       else pendingCredits.push({ amount:c.amount, unlockKey });
     }
 
-    const unlocked = sum(unlockedCredits) - sum(debits);
+    let unlocked = sum(unlockedCredits) - sum(debits);
+    // add correction factor for this site (can be +/-)
+    const correction = (siteKey === 'csfloat' ? corrections.csfloat : corrections.youpin) || 0;
+    unlocked += correction;
+
     const pending  = sum(pendingCredits.map(p=>p.amount));
     const total    = unlocked + pending;
 
-    // schedule
+    // schedule from *today forward* only (no past days)
     const byDay = new Map();
-    for (const p of pendingCredits){
+    for (const p of pendingCredits) {
       byDay.set(p.unlockKey, (byDay.get(p.unlockKey)||0) + p.amount);
     }
+
     const rows = [];
     let cumulative = 0;
     for (let i=0; i<horizon; i++){
       const key = addDaysKey(todayKey, i);
-      const unlocking = byDay.get(key) || 0;
+      const unlocking = byDay.get(key) || 0; // past days are not in map (they were unlocked)
       cumulative += unlocking;
       rows.push({ key, unlocking, cumulative });
     }
-    return { total, unlocked, pending, rows };
+
+    return { total, unlocked, pending, rows, todayKey };
   }
 
-  function renderSite(siteKey, events){
+  function renderSite(siteKey, events, corrections){
     const ids = SITE[siteKey].ids;
-    const { total, unlocked, pending, rows } = computeForSite(siteKey, events);
+    const { total, unlocked, pending, rows, todayKey } = computeForSite(siteKey, events, corrections);
 
     document.querySelector(ids.total).textContent    = fmtUSD.format(total);
     document.querySelector(ids.unlocked).textContent = fmtUSD.format(unlocked);
@@ -137,36 +143,38 @@
       tbody.appendChild(tr);
     }
 
-    document.querySelector(ids.asof).textContent = `as of ${labelFromKey(todayKeyPT())} PT`;
+    document.querySelector(ids.asof).textContent = `as of ${labelFromKey(todayKey)} PT`;
   }
 
   // ---- Load + render ----
-  let LIVE_EVENTS = []; // [{site,type,amount,date:'YYYY-MM-DD'}]
+  let LIVE = { events: [], corrections: { csfloat:0, youpin:0 } };
 
   async function loadAndRender(){
     try{
-      const res = await fetch(EVENTS_URL, { credentials:'omit', cache:'no-store' });
+      const res = await fetch(EVENTS_URL, { cache:'no-store', credentials:'omit' });
       const data = await res.json();
-      if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON shape');
-      // Keep only what we need; coerce
-      LIVE_EVENTS = data.events
+      if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON');
+      LIVE.events = data.events
         .filter(e => (e.site==='csfloat' || e.site==='youpin') && (e.type==='credit' || e.type==='debit'))
         .map(e => ({ site:e.site, type:e.type, amount:Number(e.amount)||0, date:String(e.date) }));
-    } catch(err){
+      LIVE.corrections = {
+        csfloat: Number(data.corrections?.csfloat) || 0,
+        youpin:  Number(data.corrections?.youpin)  || 0
+      };
+    } catch (err){
       console.error('Failed to load events:', err);
-      LIVE_EVENTS = []; // fail closed
+      LIVE = { events: [], corrections: { csfloat:0, youpin:0 } };
     }
-    renderSite('csfloat', LIVE_EVENTS);
-    renderSite('youpin',  LIVE_EVENTS);
+    renderSite('csfloat', LIVE.events, LIVE.corrections);
+    renderSite('youpin',  LIVE.events, LIVE.corrections);
   }
 
   // Boot
   document.addEventListener('DOMContentLoaded', () => {
     initGate();
-    // If user already authed in this tab, render immediately:
     if (sessionStorage.getItem(SESSION_KEY) === '1') loadAndRender();
   });
 
-  // For console testing:
-  window.COAHBalance = { loadAndRender };
+  // For console/manual refresh
+  window.COAHBalance = { refresh: loadAndRender };
 })();
