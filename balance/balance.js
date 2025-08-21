@@ -1,9 +1,9 @@
-/* Password gate + live balance dashboard (PT-accurate rolling horizon)
-   - Fetches events + corrections from your Apps Script Web App
+/* Password gate + live balance dashboard (PT-accurate, excludes "today" in pending list)
    - Sites:
        CSFloat  -> lock 9 days, horizon 9 days
        YouPin   -> lock 8 days, horizon 8 days
-   - All date math is done on PT calendar dates (YYYY-MM-DD strings).
+   - Dates from sheet are PT calendar days ("YYYY-MM-DD").
+   - Pending schedule starts at **tomorrow** (not today).
 */
 
 (() => {
@@ -11,9 +11,10 @@
   const PASSWORD_SHA256_HEX = "e0fe87b9ef1bd5b345269890a4f357dd7e531e7bba307ac691567600a049897f";
   const SESSION_KEY = "balance_authed";
   const DEBUG_LOG_HASH = false;
+
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbyyuQUaKYNC1iWwCdMDoKcP3_n9vsCfu5WfljytAEIyI7RLs_TaGodMNbKhAMnCocd4/exec"; // <-- set your /exec URL
-  // =================================
+  const EVENTS_URL = "https://script.google.com/macros/s/PUT_YOUR_DEPLOY_ID/exec"; // <-- paste your /exec URL
+  const DEBUG_NET = false; // set true to log fetched JSON
 
   // ---------- Password gate ----------
   function normalizeInput(s){ return (s || '').replace(/\u00A0/g,' ').trim(); }
@@ -49,6 +50,9 @@
 
   // ---------- Balance logic (PT calendar dates) ----------
   const PT_TZ = "America/Los_Angeles";
+  // Start pending schedule at **tomorrow** (1). Set to 0 if you ever want to include today.
+  const START_OFFSET_DAYS = 1;
+
   const SITE = {
     csfloat: { lockDays: 9, horizon: 9,
       ids: { total:'#cs-total', unlocked:'#cs-unlocked', pending:'#cs-pending', up:'#cs-unlockedPct', pp:'#cs-pendingPct', sched:'#cs-schedule', asof:'#cs-asof' }
@@ -57,13 +61,13 @@
       ids: { total:'#yp-total', unlocked:'#yp-unlocked', pending:'#yp-pending', up:'#yp-unlockedPct', pp:'#yp-pendingPct', sched:'#yp-schedule', asof:'#yp-asof' }
     }
   };
+
   const fmtUSD = new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 });
 
-  // ---- PT-day helpers (string-based to avoid TZ drift) ----
-  // Today's PT calendar date as "YYYY-MM-DD"
+  // PT day helpers (string-based to avoid DST drift)
   function todayYMD_PT(){
-    const s = new Intl.DateTimeFormat('en-CA', { timeZone: PT_TZ, year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
-    return s; // e.g., "2025-08-21"
+    return new Intl.DateTimeFormat('en-CA', { timeZone: PT_TZ, year:'numeric', month:'2-digit', day:'2-digit' })
+      .format(new Date()); // "YYYY-MM-DD"
   }
   function ymdToInt(ymd){ const [y,m,d] = ymd.split('-').map(n=>parseInt(n,10)); return y*10000 + m*100 + d; }
   function addDaysYMD(ymd, n){
@@ -77,7 +81,6 @@
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     return `${months[m-1]} ${String(d).padStart(2,'0')}, ${String(y).slice(-2)}`;
   }
-
   function sum(a){ return a.reduce((x,y)=>x+y,0); }
 
   function computeForSite(siteKey, events, corrections){
@@ -93,21 +96,21 @@
     const pendingCredits  = []; // { amount, unlockYMD }
 
     for (const c of credits){
-      const eventYMD  = c.date;                // already "YYYY-MM-DD" in PT from Apps Script
-      const unlockYMD = addDaysYMD(eventYMD, lockDays);
+      const eventYMD  = c.date;                      // "YYYY-MM-DD" PT from Apps Script
+      const unlockYMD = addDaysYMD(eventYMD, lockDays); // unlock at PT midnight after N days
       if (ymdToInt(unlockYMD) <= todayInt) unlockedCredits.push(c.amount);
       else pendingCredits.push({ amount:c.amount, unlockYMD });
     }
 
     let unlocked = sum(unlockedCredits) - sum(debits);
-    // Add correction factor
+    // Add correction factor to unlocked
     const correction = (siteKey === 'csfloat' ? corrections.csfloat : corrections.youpin) || 0;
     unlocked += correction;
 
     const pending = sum(pendingCredits.map(p=>p.amount));
     const total   = unlocked + pending;
 
-    // Build schedule strictly from today forward (no past rows)
+    // Schedule from **tomorrow** forward (no past or "today" rows)
     const byDay = new Map(); // unlockYMD -> amount
     for (const p of pendingCredits) {
       byDay.set(p.unlockYMD, (byDay.get(p.unlockYMD)||0) + p.amount);
@@ -115,7 +118,7 @@
 
     const rows = [];
     let cumulative = 0;
-    for (let i=0; i<horizon; i++){
+    for (let i = START_OFFSET_DAYS; i < START_OFFSET_DAYS + horizon; i++){
       const ymd = addDaysYMD(today, i);
       const unlocking = byDay.get(ymd) || 0;
       cumulative += unlocking;
@@ -158,16 +161,21 @@
 
   // ---- Load + render ----
   let LIVE = { events: [], corrections: { csfloat:0, youpin:0 } };
+  let LAST_TODAY = todayYMD_PT();
 
   async function loadAndRender(){
     try{
-      const res = await fetch(EVENTS_URL, { cache:'no-store', credentials:'omit' });
+      const url = `${EVENTS_URL}?t=${Date.now()}`; // bust caches
+      const res = await fetch(url, { cache:'no-store', credentials:'omit' });
       const data = await res.json();
-      if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON');
+
+      if (DEBUG_NET) console.log('[balance] fetched JSON:', data);
+
+      if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON shape');
 
       LIVE.events = data.events
         .filter(e => (e.site==='csfloat' || e.site==='youpin') && (e.type==='credit' || e.type==='debit'))
-        .map(e => ({ site:e.site, type:e.type, amount:Number(e.amount)||0, date:String(e.date) })); // date is "YYYY-MM-DD"
+        .map(e => ({ site:e.site, type:e.type, amount:Number(e.amount)||0, date:String(e.date) })); // "YYYY-MM-DD"
 
       LIVE.corrections = {
         csfloat: Number(data.corrections?.csfloat) || 0,
@@ -182,10 +190,22 @@
     renderSite('youpin',  LIVE.events, LIVE.corrections);
   }
 
+  // Auto-rollover at PT midnight (checks each minute)
+  function startMidnightWatcher(){
+    setInterval(() => {
+      const nowYMD = todayYMD_PT();
+      if (nowYMD !== LAST_TODAY) {
+        LAST_TODAY = nowYMD;
+        loadAndRender();
+      }
+    }, 60 * 1000);
+  }
+
   // Boot
   document.addEventListener('DOMContentLoaded', () => {
     initGate();
     if (sessionStorage.getItem(SESSION_KEY) === '1') loadAndRender();
+    startMidnightWatcher();
   });
 
   // Manual refresh via console if needed
