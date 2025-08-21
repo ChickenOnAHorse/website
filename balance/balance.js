@@ -10,7 +10,7 @@
   const SESSION_KEY = "balance_authed";
   const DEBUG_LOG_HASH = false; // turn on if you want to verify your hash in console
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/PUT_YOUR_DEPLOY_ID/exec"; // <-- paste your /exec URL
+  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbzbh85cDb-igr2sahY3o9U14lqLDZI04mUNbkGumRdINbXF-NNK605wlx00dWjtLx5g/exec"; // <-- paste your /exec URL
   // =================================
 
   // ---------- Password gate ----------
