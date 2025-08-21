@@ -9,128 +9,168 @@
   <style>
     :root {
       --card-bg:#111827; --panel:#0f172a; --border:rgba(255,255,255,.12);
-      --text:#e5e7eb; --muted:#9ca3af; --good:#22c55e; --warn:#fbbf24; --pend:#60a5fa;
+      --text:#e5e7eb; --muted:#9ca3af; --good:#22c55e; --pend:#60a5fa;
     }
+    /* ---------- Gate (password) ---------- */
+    .gate {
+      position: fixed; inset: 0; z-index: 1000;
+      display: grid; place-items: center;
+      background: #0b1321; overflow: hidden;
+    }
+    .gate::before{
+      content:"";
+      position:absolute; inset:0;
+      background: url("/balance/login-bg.jpg") center/cover no-repeat;
+      filter: brightness(.55) saturate(.95);
+      transform: scale(1.03);
+    }
+    .gate-card{
+      position: relative; z-index: 1;
+      width:min(560px, 92vw);
+      background: rgba(17,24,39,.88);
+      border:1px solid var(--border);
+      border-radius:16px; padding:20px;
+      box-shadow:0 18px 50px rgba(0,0,0,.5);
+      backdrop-filter: blur(2px);
+    }
+    .gate-title{ margin:0 0 10px; text-align:center; color:var(--text); }
+    .gate-row{ display:flex; gap:10px; align-items:center; }
+    .gate-row + .gate-row{ margin-top:10px; }
+    .gate input[type=password]{
+      flex:1; padding:10px 12px; border-radius:10px;
+      border:1px solid var(--border); background:#0f172a; color:#fff;
+    }
+    .gate button{
+      padding:10px 14px; border-radius:10px; border:1px solid var(--border);
+      background:#1f2937; color:#fff; cursor:pointer;
+    }
+    .gate button:hover{ background:#374151; }
+    .gate .msg{ margin-top:8px; font-size:.9rem; }
+    .gate .err{ color:#fca5a5; display:none; }
+    .gate .note{ color:var(--muted); }
+    .hidden{ display:none; }
+
+    /* ---------- App layout ---------- */
     body {
       margin:0; background:#0b1321; color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif;
     }
-    .container { max-width:1100px; margin:32px auto; padding:0 16px; }
-    .page-title { text-align:center; margin:6px 0 18px; }
-    .toolbar { display:flex; gap:12px; align-items:center; justify-content:space-between; margin:12px 0 20px; }
-    .toolbar .right { display:flex; gap:8px; align-items:center; }
-    .select, .input {
-      background:var(--panel); color:var(--text); border:1px solid var(--border);
-      border-radius:10px; padding:8px 10px;
-    }
-    .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
-    @media (max-width:900px){ .cards { grid-template-columns:1fr; } }
-    .card {
-      background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:16px;
-      box-shadow:0 8px 24px rgba(0,0,0,.35);
-    }
-    .card h3 { margin:0 0 8px; font-size:1.1rem; }
-    .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:6px; }
+    .container { max-width:1200px; margin:32px auto; padding:0 16px; }
+    .page-title { text-align:center; margin:6px 0 24px; }
+
+    .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+    @media (max-width:1000px){ .grid-2 { grid-template-columns:1fr; } }
+
+    .site-card { background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+    .site-title { margin:0 0 10px; font-size:1.15rem; }
+
+    .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:6px; }
     .kpi {
       background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px;
       display:flex; flex-direction:column; gap:6px;
     }
     .kpi .label { font-size:.85rem; color:var(--muted); }
-    .kpi .val { font-size:1.2rem; font-weight:700; }
-    .kpi.good .val { color:var(--good); }
+    .kpi .val   { font-size:1.2rem; font-weight:700; }
+    .kpi.good   .val { color:var(--good); }
     .kpi.pending .val { color:var(--pend); }
-    .progress {
-      height:10px; background:#0b1222; border:1px solid var(--border); border-radius:999px; overflow:hidden; margin-top:8px;
-    }
-    .bar { height:100%; background:linear-gradient(90deg, var(--good), var(--pend)); width:0%; transition:width .4s ease; }
 
-    .schedule { margin-top:14px; }
+    .schedule { margin-top:16px; }
     .schedule h4 { margin:0 0 8px; font-size:1rem; color:var(--muted); }
     table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
     thead th { text-align:left; font-weight:600; color:var(--muted); background:#0c1324; }
     th, td { padding:10px 12px; border-bottom:1px solid var(--border); }
     tbody tr:last-child td { border-bottom:none; }
     .num { text-align:right; font-variant-numeric: tabular-nums; }
-    .pill { display:inline-block; padding:4px 8px; font-size:.8rem; border-radius:999px; border:1px solid var(--border); background:#0b1222; color:var(--muted); }
 
-    .site-tabs { display:flex; gap:8px; margin-bottom:12px; }
-    .tab {
-      padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--panel); color:var(--text);
-      cursor:pointer;
-    }
-    .tab.active { outline:2px solid rgba(96,165,250,.5); }
-
-    .muted { color:var(--muted); }
+    .asof { display:block; text-align:right; color:var(--muted); margin-top:8px; font-size:.85rem; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="page-title">Balances</h1>
-    <div class="toolbar">
-      <div class="site-tabs" id="siteTabs">
-        <button class="tab active" data-site="csfloat">CSFloat</button>
-        <button class="tab" data-site="youpin">YouPin898</button>
+  <!-- Password gate -->
+  <section id="gate" class="gate">
+    <div class="gate-card">
+      <h1 class="gate-title">Enter Password</h1>
+      <div class="gate-row">
+        <input id="pw" type="password" placeholder="Password" autocomplete="current-password" />
+        <button id="enterBtn" type="button">Enter</button>
       </div>
-      <div class="right">
-        <label class="muted" for="horizon">Horizon</label>
-        <select class="select" id="horizon">
-          <option value="7">7 days</option>
-          <option value="14" selected>14 days</option>
-          <option value="21">21 days</option>
-          <option value="30">30 days</option>
-        </select>
-        <span class="pill" id="asOf"></span>
+      <div class="msg err" id="err">Incorrect password.</div>
+      <div class="msg note">This page is not in navigation and is set to <em>noindex</em>.</div>
+      <div class="msg note" id="warn" style="display:none;">Secure crypto not available (HTTPS required).</div>
+    </div>
+  </section>
+
+  <!-- App -->
+  <div id="app" class="hidden">
+    <div class="container">
+      <h1 class="page-title">Balances</h1>
+
+      <div class="grid-2">
+        <!-- CSFloat -->
+        <section class="site-card" id="card-csfloat">
+          <h2 class="site-title">CSFloat</h2>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Total</div>
+              <div class="val" id="cs-total">$0.00</div>
+              <div class="label">Unlocked + Pending</div>
+            </div>
+            <div class="kpi good">
+              <div class="label">Unlocked</div>
+              <div class="val" id="cs-unlocked">$0.00</div>
+              <div class="label" id="cs-unlockedPct">—</div>
+            </div>
+            <div class="kpi pending">
+              <div class="label">Pending</div>
+              <div class="val" id="cs-pending">$0.00</div>
+              <div class="label" id="cs-pendingPct">—</div>
+            </div>
+          </div>
+
+          <div class="schedule">
+            <h4>Pending → Daily Release (next 8 days)</h4>
+            <table>
+              <thead><tr><th>Date (PT)</th><th class="num">Unlocking</th><th class="num">Cumulative</th></tr></thead>
+              <tbody id="cs-schedule"></tbody>
+            </table>
+          </div>
+
+          <span class="asof" id="cs-asof"></span>
+        </section>
+
+        <!-- YouPin898 -->
+        <section class="site-card" id="card-youpin">
+          <h2 class="site-title">YouPin898</h2>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Total</div>
+              <div class="val" id="yp-total">$0.00</div>
+              <div class="label">Unlocked + Pending</div>
+            </div>
+            <div class="kpi good">
+              <div class="label">Unlocked</div>
+              <div class="val" id="yp-unlocked">$0.00</div>
+              <div class="label" id="yp-unlockedPct">—</div>
+            </div>
+            <div class="kpi pending">
+              <div class="label">Pending</div>
+              <div class="val" id="yp-pending">$0.00</div>
+              <div class="label" id="yp-pendingPct">—</div>
+            </div>
+          </div>
+
+          <div class="schedule">
+            <h4>Pending → Daily Release (next 8 days)</h4>
+            <table>
+              <thead><tr><th>Date (PT)</th><th class="num">Unlocking</th><th class="num">Cumulative</th></tr></thead>
+              <tbody id="yp-schedule"></tbody>
+            </table>
+          </div>
+
+          <span class="asof" id="yp-asof"></span>
+        </section>
       </div>
     </div>
-
-    <div class="cards">
-      <!-- Totals card -->
-      <section class="card">
-        <h3 id="cardTitle">CSFloat — Totals</h3>
-        <div class="kpis">
-          <div class="kpi">
-            <div class="label">Total Balance</div>
-            <div class="val" id="totalBalance">$0.00</div>
-            <div class="progress"><div class="bar" id="totalBar"></div></div>
-            <div class="muted" style="font-size:.85rem;">Unlocked + Pending</div>
-          </div>
-          <div class="kpi good">
-            <div class="label">Unlocked</div>
-            <div class="val" id="unlocked">$0.00</div>
-            <div class="muted" id="unlockedPct">—</div>
-          </div>
-          <div class="kpi pending">
-            <div class="label">Pending (locks)</div>
-            <div class="val" id="pending">$0.00</div>
-            <div class="muted" id="pendingPct">—</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Pending schedule -->
-      <section class="card">
-        <h3>Pending → Daily Release</h3>
-        <div class="schedule">
-          <h4 id="scheduleTitle">Next 14 days</h4>
-          <table>
-            <thead>
-              <tr>
-                <th>Date (PT)</th>
-                <th class="num">Unlocking</th>
-                <th class="num">Cumulative Unlocked</th>
-              </tr>
-            </thead>
-            <tbody id="scheduleBody">
-              <!-- rows injected -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <p class="muted" style="margin-top:12px;">
-      Lock rule: credits unlock at **midnight PT** after <strong>8 days</strong> from the event date. Purchases (debits) apply immediately.
-    </p>
   </div>
 
   <!-- External JS (CSP-safe) -->
