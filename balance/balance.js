@@ -1,7 +1,7 @@
 (() => {
   // ===== CONFIG =====
   const PASSWORD_SHA256_HEX = "e0fe87b9ef1bd5b345269890a4f357dd7e531e7bba307ac691567600a049897f";
-  const DEBUG_LOG_HASH = false;
+  const DEBUG_LOG_HASH = true; // set to false after you verify
   // ==================
 
   function showFatal(msg){
@@ -49,7 +49,8 @@
       function normalizeInput(s){ return (s || '').replace(/\u00A0/g,' ').trim(); }
 
       async function sha256Hex(str){
-        const enc = new TextEncoder().().encode(str);
+        // ✅ fixed: removed the extra "()"
+        const enc = new TextEncoder().encode(str);
         const buf = await crypto.subtle.digest('SHA-256', enc);
         return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
       }
