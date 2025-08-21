@@ -1,9 +1,9 @@
-/* Password gate + live balance dashboard
+/* Password gate + live balance dashboard (PT-accurate rolling horizon)
    - Fetches events + corrections from your Apps Script Web App
    - Sites:
        CSFloat  -> lock 9 days, horizon 9 days
        YouPin   -> lock 8 days, horizon 8 days
-   - Dates from sheet are PT calendar days (YYYY-MM-DD).
+   - All date math is done on PT calendar dates (YYYY-MM-DD strings).
 */
 
 (() => {
@@ -12,7 +12,7 @@
   const SESSION_KEY = "balance_authed";
   const DEBUG_LOG_HASH = false;
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbyyuQUaKYNC1iWwCdMDoKcP3_n9vsCfu5WfljytAEIyI7RLs_TaGodMNbKhAMnCocd4/exec"; // <-- set your /exec URL
+  const EVENTS_URL = "https://script.google.com/macros/s/PUT_YOUR_DEPLOY_ID/exec"; // <-- set your /exec URL
   // =================================
 
   // ---------- Password gate ----------
@@ -47,7 +47,7 @@
     pw.addEventListener('keydown', e => { if (e.key === 'Enter' || e.keyCode === 13) tryLogin(e); });
   }
 
-  // ---------- Balance logic ----------
+  // ---------- Balance logic (PT calendar dates) ----------
   const PT_TZ = "America/Los_Angeles";
   const SITE = {
     csfloat: { lockDays: 9, horizon: 9,
@@ -57,67 +57,77 @@
       ids: { total:'#yp-total', unlocked:'#yp-unlocked', pending:'#yp-pending', up:'#yp-unlockedPct', pp:'#yp-pendingPct', sched:'#yp-schedule', asof:'#yp-asof' }
     }
   };
-  const fmtUSD  = new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 });
-  const fmtDate = new Intl.DateTimeFormat('en-US', { timeZone: PT_TZ, month:'short', day:'2-digit', year:'2-digit' });
+  const fmtUSD = new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 });
 
-  // Robust “today in PT” as a UTC key (never off by DST)
-  function todayKeyPT() {
-    const nowPT = new Date(new Date().toLocaleString('en-US', { timeZone: PT_TZ }));
-    const y = nowPT.getFullYear(), m = nowPT.getMonth(), d = nowPT.getDate();
-    return Date.UTC(y, m, d);
+  // ---- PT-day helpers (string-based to avoid TZ drift) ----
+  // Today's PT calendar date as "YYYY-MM-DD"
+  function todayYMD_PT(){
+    const s = new Intl.DateTimeFormat('en-CA', { timeZone: PT_TZ, year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
+    return s; // e.g., "2025-08-21"
   }
-  function dayKeyFromYMD(ymd){ const [y,m,d] = ymd.split('-').map(n=>parseInt(n,10)); return Date.UTC(y, m-1, d); }
-  function addDaysKey(keyUTC, n){ return keyUTC + n*86400000; }
-  function labelFromKey(keyUTC){ return fmtDate.format(new Date(keyUTC)); }
+  function ymdToInt(ymd){ const [y,m,d] = ymd.split('-').map(n=>parseInt(n,10)); return y*10000 + m*100 + d; }
+  function addDaysYMD(ymd, n){
+    const [y,m,d] = ymd.split('-').map(n=>parseInt(n,10));
+    const dt = new Date(Date.UTC(y, m-1, d) + n*86400000);
+    const yy = dt.getUTCFullYear(), mm = String(dt.getUTCMonth()+1).padStart(2,'0'), dd = String(dt.getUTCDate()).padStart(2,'0');
+    return `${yy}-${mm}-${dd}`;
+  }
+  function labelFromYMD(ymd){
+    const [y,m,d] = ymd.split('-').map(n=>parseInt(n,10));
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${months[m-1]} ${String(d).padStart(2,'0')}, ${String(y).slice(-2)}`;
+  }
+
   function sum(a){ return a.reduce((x,y)=>x+y,0); }
 
   function computeForSite(siteKey, events, corrections){
     const { lockDays, horizon } = SITE[siteKey];
-    const todayKey = todayKeyPT();
+    const today = todayYMD_PT();
+    const todayInt = ymdToInt(today);
 
     const evs = events.filter(e => e.site === siteKey);
     const debits  = evs.filter(e => e.type === 'debit').map(e => e.amount);
     const credits = evs.filter(e => e.type === 'credit');
 
     const unlockedCredits = [];
-    const pendingCredits  = []; // {amount, unlockKey}
+    const pendingCredits  = []; // { amount, unlockYMD }
 
     for (const c of credits){
-      const eventKey  = dayKeyFromYMD(c.date);             // PT date from sheet
-      const unlockKey = addDaysKey(eventKey, lockDays);    // PT midnight after N days
-      if (unlockKey <= todayKey) unlockedCredits.push(c.amount);
-      else pendingCredits.push({ amount:c.amount, unlockKey });
+      const eventYMD  = c.date;                // already "YYYY-MM-DD" in PT from Apps Script
+      const unlockYMD = addDaysYMD(eventYMD, lockDays);
+      if (ymdToInt(unlockYMD) <= todayInt) unlockedCredits.push(c.amount);
+      else pendingCredits.push({ amount:c.amount, unlockYMD });
     }
 
     let unlocked = sum(unlockedCredits) - sum(debits);
-    // add correction factor for this site (can be +/-)
+    // Add correction factor
     const correction = (siteKey === 'csfloat' ? corrections.csfloat : corrections.youpin) || 0;
     unlocked += correction;
 
-    const pending  = sum(pendingCredits.map(p=>p.amount));
-    const total    = unlocked + pending;
+    const pending = sum(pendingCredits.map(p=>p.amount));
+    const total   = unlocked + pending;
 
-    // schedule from *today forward* only (no past days)
-    const byDay = new Map();
+    // Build schedule strictly from today forward (no past rows)
+    const byDay = new Map(); // unlockYMD -> amount
     for (const p of pendingCredits) {
-      byDay.set(p.unlockKey, (byDay.get(p.unlockKey)||0) + p.amount);
+      byDay.set(p.unlockYMD, (byDay.get(p.unlockYMD)||0) + p.amount);
     }
 
     const rows = [];
     let cumulative = 0;
     for (let i=0; i<horizon; i++){
-      const key = addDaysKey(todayKey, i);
-      const unlocking = byDay.get(key) || 0; // past days are not in map (they were unlocked)
+      const ymd = addDaysYMD(today, i);
+      const unlocking = byDay.get(ymd) || 0;
       cumulative += unlocking;
-      rows.push({ key, unlocking, cumulative });
+      rows.push({ ymd, unlocking, cumulative });
     }
 
-    return { total, unlocked, pending, rows, todayKey };
+    return { total, unlocked, pending, rows, today };
   }
 
   function renderSite(siteKey, events, corrections){
     const ids = SITE[siteKey].ids;
-    const { total, unlocked, pending, rows, todayKey } = computeForSite(siteKey, events, corrections);
+    const { total, unlocked, pending, rows, today } = computeForSite(siteKey, events, corrections);
 
     document.querySelector(ids.total).textContent    = fmtUSD.format(total);
     document.querySelector(ids.unlocked).textContent = fmtUSD.format(unlocked);
@@ -135,7 +145,7 @@
       const td1 = document.createElement('td');
       const td2 = document.createElement('td');
       const td3 = document.createElement('td');
-      td1.textContent = labelFromKey(r.key);
+      td1.textContent = labelFromYMD(r.ymd);
       td2.textContent = fmtUSD.format(r.unlocking);
       td3.textContent = fmtUSD.format(r.cumulative);
       td2.className = 'num'; td3.className = 'num';
@@ -143,7 +153,7 @@
       tbody.appendChild(tr);
     }
 
-    document.querySelector(ids.asof).textContent = `as of ${labelFromKey(todayKey)} PT`;
+    document.querySelector(ids.asof).textContent = `as of ${labelFromYMD(today)} PT`;
   }
 
   // ---- Load + render ----
@@ -154,9 +164,11 @@
       const res = await fetch(EVENTS_URL, { cache:'no-store', credentials:'omit' });
       const data = await res.json();
       if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON');
+
       LIVE.events = data.events
         .filter(e => (e.site==='csfloat' || e.site==='youpin') && (e.type==='credit' || e.type==='debit'))
-        .map(e => ({ site:e.site, type:e.type, amount:Number(e.amount)||0, date:String(e.date) }));
+        .map(e => ({ site:e.site, type:e.type, amount:Number(e.amount)||0, date:String(e.date) })); // date is "YYYY-MM-DD"
+
       LIVE.corrections = {
         csfloat: Number(data.corrections?.csfloat) || 0,
         youpin:  Number(data.corrections?.youpin)  || 0
@@ -165,6 +177,7 @@
       console.error('Failed to load events:', err);
       LIVE = { events: [], corrections: { csfloat:0, youpin:0 } };
     }
+
     renderSite('csfloat', LIVE.events, LIVE.corrections);
     renderSite('youpin',  LIVE.events, LIVE.corrections);
   }
@@ -175,6 +188,6 @@
     if (sessionStorage.getItem(SESSION_KEY) === '1') loadAndRender();
   });
 
-  // For console/manual refresh
+  // Manual refresh via console if needed
   window.COAHBalance = { refresh: loadAndRender };
 })();
