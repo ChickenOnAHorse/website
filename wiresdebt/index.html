@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Account Status — COAH</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    :root{
+      --bg:#0b1321; --text:#e5e7eb; --muted:#9ca3af;
+      --card:#111827; --panel:#0f172a; --border:rgba(255,255,255,.12);
+      --good:#22c55e; --warn:#fbbf24; --bad:#ef4444; --accent:#60a5fa;
+    }
+    body{ margin:0; background:var(--bg); color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif; }
+    .container{ max-width:1200px; margin:28px auto; padding:0 16px; }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    .brand{ display:flex; align-items:center; gap:10px; }
+    .brand .logo{ font-size:1.35rem; }
+    .brand h1{ margin:0; font-size:1.2rem; }
+    .pill{ display:inline-block; padding:6px 10px; border:1px solid var(--border);
+      border-radius:999px; background:var(--panel); color:var(--muted); font-size:.85rem; }
+
+    .grid{ display:grid; grid-template-columns: 1.2fr .8fr; gap:18px; }
+    @media (max-width:1000px){ .grid{ grid-template-columns:1fr; } }
+
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:14px;
+      padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    .card h2{ margin:0 0 10px; font-size:1.05rem; }
+    .muted{ color:var(--muted); }
+
+    .summary{
+      display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:8px;
+    }
+    @media (max-width:820px){ .summary{ grid-template-columns:repeat(2,1fr); } }
+    .kpi{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; }
+    .kpi .label{ font-size:.85rem; color:var(--muted); }
+    .kpi .val{ margin-top:6px; font-size:1.25rem; font-weight:700; }
+    .kpi.good .val{ color:var(--good); } .kpi.warn .val{ color:var(--warn); } .kpi.bad .val{ color:var(--bad); }
+
+    table{ width:100%; border-collapse:collapse; background:var(--panel);
+      border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    thead th{ text-align:left; font-weight:600; color:var(--muted); background:#0c1324; }
+    th, td{ padding:10px 12px; border-bottom:1px solid var(--border); }
+    tbody tr:last-child td{ border-bottom:none; }
+    .num{ text-align:right; font-variant-numeric: tabular-nums; }
+
+    /* Right column: card + payment box */
+    .fake-card{
+      position:relative; overflow:hidden; border-radius:18px;
+      height:220px; background:#0d1424 url("/wiresdebt/brand.jpg") center/cover no-repeat;
+      border:1px solid var(--border); box-shadow:0 12px 30px rgba(0,0,0,.45);
+    }
+    .fake-card::after{
+      content:""; position:absolute; inset:0; background:linear-gradient(135deg, rgba(0,0,0,.35), rgba(0,0,0,.15) 40%, rgba(0,0,0,.55));
+    }
+    .chip{ position:absolute; top:20px; left:20px; width:44px; height:32px; border-radius:6px; background:linear-gradient(180deg,#f4e6b5,#d6b463); box-shadow:inset 0 0 0 2px rgba(0,0,0,.25); }
+    .card-text{ position:absolute; left:20px; right:20px; bottom:16px; z-index:1; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.4); }
+    .card-name{ font-weight:600; letter-spacing:.4px; }
+    .card-number{ font-size:1.05rem; letter-spacing:2px; margin:6px 0; }
+    .card-brand{ font-size:.9rem; color:#e5e7eb; opacity:.9; }
+
+    .paybox .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .btn{ padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:#1f2937; color:#fff; cursor:pointer; }
+    .btn:hover{ background:#374151; }
+    .copy-done{ display:none; color:var(--good); font-size:.9rem; }
+
+    .footnote{ margin-top:10px; font-size:.85rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">🐔🐴</span>
+        <h1>COAH — Account Status</h1>
+      </div>
+      <span class="pill">Private page • not in navigation</span>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Account overview -->
+      <section class="card">
+        <h2>Account Overview</h2>
+        <div class="muted" id="acctMeta">Account • **** 1234 • Friend Name</div>
+
+        <div class="summary">
+          <div class="kpi bad">
+            <div class="label">Outstanding Balance</div>
+            <div class="val" id="kpi-balance">$0.00</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Last Payment</div>
+            <div class="val" id="kpi-lastpay">$0.00</div>
+          </div>
+          <div class="kpi warn">
+            <div class="label">Next Due</div>
+            <div class="val" id="kpi-due">—</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Status</div>
+            <div class="val" id="kpi-status">Current</div>
+          </div>
+        </div>
+
+        <h2 style="margin-top:16px;">Activity</h2>
+        <table id="txTable" aria-label="Transactions">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="num">Amount</th>
+              <th class="num">Running Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- rows injected by /wiresdebt/wiresdebt.js -->
+          </tbody>
+        </table>
+
+        <p class="footnote">Questions? DM me or reply to the latest “wire/debt” thread. This page is view-only.</p>
+      </section>
+
+      <!-- RIGHT: “Card” + payment details -->
+      <aside class="card">
+        <div class="fake-card" aria-label="Friend card">
+          <div class="chip" aria-hidden="true"></div>
+          <div class="card-text">
+            <div class="card-number" id="card-number">**** **** **** 1234</div>
+            <div class="card-name" id="card-name">FRIEND NAME</div>
+            <div class="card-brand">Chicken on a Horse • Member</div>
+          </div>
+        </div>
+
+        <div class="paybox" style="margin-top:12px;">
+          <h2>How to Pay</h2>
+          <p class="muted" id="pay-instructions">Use Zelle / Wire. Reference your account last-4.</p>
+          <div class="row" style="margin-top:6px;">
+            <button class="btn" id="copyBtn">Copy Payment Details</button>
+            <span class="copy-done" id="copyDone">Copied ✓</span>
+          </div>
+        </div>
+
+        <div class="footnote">Card artwork © you — background image loaded from <code>/wiresdebt/brand.jpg</code>.</div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- External JS (CSP-safe) -->
+  <script src="/wiresdebt/wiresdebt.js"></script>
+</body>
+</html>
