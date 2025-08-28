@@ -11,7 +11,7 @@
   const DEBUG_LOG_HASH = false;
 
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbyFaGNc5K1lF1daEfcDhPC4wqJMYeQkzTLF5TxZs4zMit_YUTlX5NsA7JbS9T0c4CQY/exec"; // <-- set your /exec URL
+  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbzER2G3jvYy9BvjSOq6uPgvNw7JlYb1p5CtjDTDqAtMXPJoT6n_mKw27ChoZZQyU-IA/exec"; // <-- set your /exec URL
   const DEBUG_NET = false;
 
   // ---------- Password gate ----------
