@@ -1,4 +1,6 @@
-/* Balance dashboard (PT-accurate, excludes "today"), with RMB on YouPin KPIs and schedule */
+/* Balance dashboard (PT-accurate, excludes "today"), with RMB on YouPin KPIs & schedule
+   Unlocked math: unlocked = sum(unlocked credits) - sum(all debits) + correction
+*/
 
 (() => {
   // ======== PASSWORD CONFIG ========
@@ -9,7 +11,8 @@
   const EVENTS_URL = "https://script.google.com/macros/s/AKfycbzER2G3jvYy9BvjSOq6uPgvNw7JlYb1p5CtjDTDqAtMXPJoT6n_mKw27ChoZZQyU-IA/exec"; // <-- paste your /exec URL
 
   // ======== DEBUG ========
-  const DEBUG_NET = false;
+  const DEBUG_NET = false;      // logs fetched JSON
+  const DEBUG_COMPUTE = true;   // logs per-site math inputs/outputs
 
   // ---------- Password gate ----------
   function normalizeInput(s){ return (s || '').replace(/\u00A0/g,' ').trim(); }
@@ -91,25 +94,26 @@
     const todayInt = ymdToInt(today);
 
     const evs = STATE.events.filter(e => e.site === siteKey);
-    const debits  = evs.filter(e => e.type === 'debit').map(e => e.amount);
-    const credits = evs.filter(e => e.type === 'credit');
+    const debitList  = evs.filter(e => e.type === 'debit').map(e => Number(e.amount)||0);
+    const creditList = evs.filter(e => e.type === 'credit').map(e => Number(e.amount)||0);
+    const debitsSum  = sum(debitList);
 
     const unlockedCredits = [];
     const pendingCredits  = []; // { amount, unlockYMD }
 
-    for (const c of credits){
+    for (const c of evs.filter(e=>e.type==='credit')){
       const unlockYMD = addDaysYMD(c.date, lockDays);
-      if (ymdToInt(unlockYMD) <= todayInt) unlockedCredits.push(c.amount);
-      else pendingCredits.push({ amount:c.amount, unlockYMD });
+      if (ymdToInt(unlockYMD) <= todayInt) unlockedCredits.push(Number(c.amount)||0);
+      else pendingCredits.push({ amount:Number(c.amount)||0, unlockYMD });
     }
 
-    // unlocked = (all unlocked credits) - (all debits) + correction
-    let unlocked = sum(unlockedCredits) - sum(debits);
-    const correction = (siteKey === 'csfloat' ? STATE.corrections.csfloat : STATE.corrections.youpin) || 0;
-    unlocked += correction;
+    const unlockedCreditsSum = sum(unlockedCredits);
+    const pendingSum         = sum(pendingCredits.map(p=>p.amount));
+    const correction         = (siteKey === 'csfloat' ? Number(STATE.corrections.csfloat)||0 : Number(STATE.corrections.youpin)||0);
 
-    const pending = sum(pendingCredits.map(p=>p.amount));
-    const total   = unlocked + pending;
+    // === core math (unchanged) ===
+    const unlocked = unlockedCreditsSum - debitsSum + correction;
+    const total    = unlocked + pendingSum;
 
     // schedule from tomorrow forward
     const byDay = new Map(); // unlockYMD -> amount
@@ -126,7 +130,11 @@
       rows.push({ ymd, unlocking, cumulative });
     }
 
-    return { total, unlocked, pending, rows, today };
+    if (DEBUG_COMPUTE) {
+      console.log(`[balance][${siteKey}] unlockedCredits=${unlockedCreditsSum.toFixed(2)} debits=${debitsSum.toFixed(2)} correction=${correction.toFixed(2)} => Unlocked=${unlocked.toFixed(2)} Pending=${pendingSum.toFixed(2)} Total=${total.toFixed(2)}`);
+    }
+
+    return { total, unlocked, pending: pendingSum, rows, today };
   }
 
   // Helper: set KPI text; for YouPin we include RMB equivalents
