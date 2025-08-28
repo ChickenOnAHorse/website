@@ -8,7 +8,7 @@
   const SESSION_KEY = "balance_authed";
 
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbzER2G3jvYy9BvjSOq6uPgvNw7JlYb1p5CtjDTDqAtMXPJoT6n_mKw27ChoZZQyU-IA/exec"; // <-- paste your /exec URL
+  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbw56X12f2dDEUcvkjDwCF8cgaw_lzwpCuMrjcdEuY86Q9RYssfwTpBrlnCfOzuKR8Td/exec"; // <-- paste your /exec URL
 
   // ======== DEBUG ========
   const DEBUG_NET = false;      // logs fetched JSON
