@@ -1,5 +1,5 @@
-/* Balance dashboard (PT-accurate, excludes "today"), with RMB on YouPin KPIs & schedule
-   Unlocked math: unlocked = sum(unlocked credits) - sum(all debits) + correction
+/* COAH Balance (no RMB) — PT-accurate, excludes "today"
+   Unlocked = sum(unlocked credits) - sum(all debits) + correction
 */
 
 (() => {
@@ -8,11 +8,10 @@
   const SESSION_KEY = "balance_authed";
 
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbyeVwnCTM0kBuia_tD1nv_aNN0VEkt7quOuiICAHOG93ZgyXJYgr8RzFpctiTic_Nus/exec"; // <-- paste your /exec URL
+  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbwzMbiwQp4m0CBukYfKbiOZ3An05tZcLt2LI-AZ46iuQ07J_OUa6V38CfLw_Umo_QzL/exec"; // <-- paste /exec URL
 
   // ======== DEBUG ========
-  const DEBUG_NET = false;      // logs fetched JSON
-  const DEBUG_COMPUTE = true;   // logs per-site math inputs/outputs
+  const DEBUG_COMPUTE = true;
 
   // ---------- Password gate ----------
   function normalizeInput(s){ return (s || '').replace(/\u00A0/g,' ').trim(); }
@@ -40,7 +39,7 @@
 
   // ---------- Balance logic ----------
   const PT_TZ = "America/Los_Angeles";
-  const START_OFFSET_DAYS = 1; // pending schedule starts at tomorrow
+  const START_OFFSET_DAYS = 1; // schedule starts tomorrow
 
   const SITE = {
     csfloat: { lockDays: 9, horizon: 9,
@@ -52,7 +51,6 @@
   };
 
   const fmtUSD = new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 });
-  const fmtCNY = new Intl.NumberFormat('zh-CN', { style:'currency', currency:'CNY', maximumFractionDigits:2 });
 
   function todayYMD_PT(){
     return new Intl.DateTimeFormat('en-CA', { timeZone: PT_TZ, year:'numeric', month:'2-digit', day:'2-digit' })
@@ -72,20 +70,18 @@
   }
   function sum(a){ return a.reduce((x,y)=>x+y,0); }
 
-  // client-side site normalization as a safety net
+  // site normalization safety net
   function normalizeSiteName(s){
-    const t = String(s || '').toLowerCase().trim();
-    if (t.includes('csfloat')) return 'csfloat';
-    if (t.startsWith('youpin')) return 'youpin'; // handles "youpin (0.5% fee)"
+    const t = String(s || '').toLowerCase().trim().replace(/\s+/g,'');
+    if (t.startsWith('youpin') || t.startsWith('youpin898') || t.includes('yp898')) return 'youpin';
+    if (t.includes('csfloat') || t.includes('cs-float') || t==='csf' || t==='cs' || t.includes('csfloa') || t==='float') return 'csfloat';
     return '';
   }
 
-  // state
   let LAST_TODAY = todayYMD_PT();
   let STATE = {
     events: [],
-    corrections: { csfloat:0, youpin:0 },
-    fx: { rmbPerUSD: 7.0 }
+    corrections: { csfloat:0, youpin:0 }
   };
 
   function computeForSite(siteKey){
@@ -96,6 +92,7 @@
     const evs = STATE.events.filter(e => e.site === siteKey);
     const debitList  = evs.filter(e => e.type === 'debit').map(e => Number(e.amount)||0);
     const creditList = evs.filter(e => e.type === 'credit').map(e => Number(e.amount)||0);
+
     const debitsSum  = sum(debitList);
 
     const unlockedCredits = [];
@@ -111,12 +108,11 @@
     const pendingSum         = sum(pendingCredits.map(p=>p.amount));
     const correction         = (siteKey === 'csfloat' ? Number(STATE.corrections.csfloat)||0 : Number(STATE.corrections.youpin)||0);
 
-    // === core math (unchanged) ===
     const unlocked = unlockedCreditsSum - debitsSum + correction;
     const total    = unlocked + pendingSum;
 
     // schedule from tomorrow forward
-    const byDay = new Map(); // unlockYMD -> amount
+    const byDay = new Map();
     for (const p of pendingCredits) {
       byDay.set(p.unlockYMD, (byDay.get(p.unlockYMD)||0) + p.amount);
     }
@@ -137,33 +133,18 @@
     return { total, unlocked, pending: pendingSum, rows, today };
   }
 
-  // Helper: set KPI text; for YouPin we include RMB equivalents
-  function setKPI(ids, siteKey, { total, unlocked, pending }, rate){
-    const $ = (sel) => document.querySelector(sel);
-    const usd = (v)=>fmtUSD.format(v);
-    const cny = (v)=>fmtCNY.format(v);
-
-    if (siteKey === 'youpin' && rate > 0){
-      $(ids.total).textContent    = `${usd(total)} (${cny(total*rate)})`;
-      $(ids.unlocked).textContent = `${usd(unlocked)} (${cny(unlocked*rate)})`;
-      $(ids.pending).textContent  = `${usd(pending)} (${cny(pending*rate)})`;
-    } else {
-      $(ids.total).textContent    = usd(total);
-      $(ids.unlocked).textContent = usd(unlocked);
-      $(ids.pending).textContent  = usd(pending);
-    }
-
-    const upct = total>0 ? (unlocked/total*100).toFixed(1)+'% of total' : '—';
-    const ppct = total>0 ? (pending/total*100).toFixed(1)+'% of total'  : '—';
-    $(ids.up).textContent = upct;
-    $(ids.pp).textContent = ppct;
-  }
-
   function renderSite(siteKey){
     const ids = SITE[siteKey].ids;
-    const rate = Number(STATE.fx.rmbPerUSD) || 7.0;
     const result = computeForSite(siteKey);
-    setKPI(ids, siteKey, result, rate);
+
+    document.querySelector(ids.total).textContent    = fmtUSD.format(result.total);
+    document.querySelector(ids.unlocked).textContent = fmtUSD.format(result.unlocked);
+    document.querySelector(ids.pending).textContent  = fmtUSD.format(result.pending);
+
+    const upct = result.total>0 ? (result.unlocked/result.total*100).toFixed(1)+'% of total' : '—';
+    const ppct = result.total>0 ? (result.pending/result.total*100).toFixed(1)+'% of total'  : '—';
+    document.querySelector(ids.up).textContent = upct;
+    document.querySelector(ids.pp).textContent = ppct;
 
     const tbody = document.querySelector(ids.sched);
     tbody.innerHTML = '';
@@ -172,19 +153,9 @@
       const td1 = document.createElement('td');
       const td2 = document.createElement('td');
       const td3 = document.createElement('td');
-
       td1.textContent = labelFromYMD(r.ymd);
-
-      if (siteKey === 'youpin' && rate > 0) {
-        const rmbUnlock = r.unlocking * rate;
-        const rmbCum    = r.cumulative * rate;
-        td2.textContent = `${fmtUSD.format(r.unlocking)} (${fmtCNY.format(rmbUnlock)})`;
-        td3.textContent = `${fmtUSD.format(r.cumulative)} (${fmtCNY.format(rmbCum)})`;
-      } else {
-        td2.textContent = fmtUSD.format(r.unlocking);
-        td3.textContent = fmtUSD.format(r.cumulative);
-      }
-
+      td2.textContent = fmtUSD.format(r.unlocking);
+      td3.textContent = fmtUSD.format(r.cumulative);
       td2.className = 'num'; td3.className = 'num';
       tr.append(td1, td2, td3);
       tbody.appendChild(tr);
@@ -199,7 +170,6 @@
     try{
       const res = await fetch(`${EVENTS_URL}?t=${Date.now()}`, { cache:'no-store', credentials:'omit' });
       const data = await res.json();
-      if (DEBUG_NET) console.log('[balance] JSON:', data);
 
       if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON');
 
@@ -217,10 +187,9 @@
         csfloat: Number(data.corrections?.csfloat) || 0,
         youpin:  Number(data.corrections?.youpin)  || 0
       };
-      STATE.fx = { rmbPerUSD: Number(data.fx?.rmbPerUSD) || STATE.fx.rmbPerUSD };
     } catch (err){
       console.error('Balance load error:', err);
-      // keep last state; UI will still render
+      // keep last state so UI still renders
     }
     renderAll();
   }
