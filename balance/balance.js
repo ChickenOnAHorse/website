@@ -1,9 +1,7 @@
-/* Password gate + live balance dashboard (PT-accurate, excludes "today" in pending list)
-   - Sites:
-       CSFloat  -> lock 9 days, horizon 9 days
-       YouPin   -> lock 8 days, horizon 8 days
-   - Dates from sheet are PT calendar days ("YYYY-MM-DD").
-   - Pending schedule starts at **tomorrow** (not today).
+/* Password gate + live balance dashboard (PT-accurate, excludes "today")
+   - CSFloat: lock 9d, horizon 9d
+   - YouPin : lock 8d, horizon 8d
+   - YouPin schedule shows USD plus RMB equivalents.
 */
 
 (() => {
@@ -13,8 +11,8 @@
   const DEBUG_LOG_HASH = false;
 
   // ======== DATA SOURCE ============
-  const EVENTS_URL = "https://script.google.com/macros/s/AKfycbyyuQUaKYNC1iWwCdMDoKcP3_n9vsCfu5WfljytAEIyI7RLs_TaGodMNbKhAMnCocd4/exec"; // <-- paste your /exec URL
-  const DEBUG_NET = false; // set true to log fetched JSON
+  const EVENTS_URL = "https://script.google.com/macros/s/PUT_YOUR_DEPLOY_ID/exec"; // <-- set your /exec URL
+  const DEBUG_NET = false;
 
   // ---------- Password gate ----------
   function normalizeInput(s){ return (s || '').replace(/\u00A0/g,' ').trim(); }
@@ -50,8 +48,7 @@
 
   // ---------- Balance logic (PT calendar dates) ----------
   const PT_TZ = "America/Los_Angeles";
-  // Start pending schedule at **tomorrow** (1). Set to 0 if you ever want to include today.
-  const START_OFFSET_DAYS = 1;
+  const START_OFFSET_DAYS = 1; // pending schedule starts tomorrow
 
   const SITE = {
     csfloat: { lockDays: 9, horizon: 9,
@@ -63,8 +60,8 @@
   };
 
   const fmtUSD = new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 });
+  const fmtCNY = new Intl.NumberFormat('zh-CN', { style:'currency', currency:'CNY', maximumFractionDigits:2 });
 
-  // PT day helpers (string-based to avoid DST drift)
   function todayYMD_PT(){
     return new Intl.DateTimeFormat('en-CA', { timeZone: PT_TZ, year:'numeric', month:'2-digit', day:'2-digit' })
       .format(new Date()); // "YYYY-MM-DD"
@@ -83,6 +80,10 @@
   }
   function sum(a){ return a.reduce((x,y)=>x+y,0); }
 
+  // state
+  let LIVE = { events: [], corrections: { csfloat:0, youpin:0 }, fx: { rmbPerUSD: 0 } };
+  let LAST_TODAY = todayYMD_PT();
+
   function computeForSite(siteKey, events, corrections){
     const { lockDays, horizon } = SITE[siteKey];
     const today = todayYMD_PT();
@@ -97,20 +98,19 @@
 
     for (const c of credits){
       const eventYMD  = c.date;                      // "YYYY-MM-DD" PT from Apps Script
-      const unlockYMD = addDaysYMD(eventYMD, lockDays); // unlock at PT midnight after N days
+      const unlockYMD = addDaysYMD(eventYMD, lockDays);
       if (ymdToInt(unlockYMD) <= todayInt) unlockedCredits.push(c.amount);
       else pendingCredits.push({ amount:c.amount, unlockYMD });
     }
 
     let unlocked = sum(unlockedCredits) - sum(debits);
-    // Add correction factor to unlocked
     const correction = (siteKey === 'csfloat' ? corrections.csfloat : corrections.youpin) || 0;
     unlocked += correction;
 
     const pending = sum(pendingCredits.map(p=>p.amount));
     const total   = unlocked + pending;
 
-    // Schedule from **tomorrow** forward (no past or "today" rows)
+    // Build schedule from tomorrow forward
     const byDay = new Map(); // unlockYMD -> amount
     for (const p of pendingCredits) {
       byDay.set(p.unlockYMD, (byDay.get(p.unlockYMD)||0) + p.amount);
@@ -128,7 +128,7 @@
     return { total, unlocked, pending, rows, today };
   }
 
-  function renderSite(siteKey, events, corrections){
+  function renderSite(siteKey, events, corrections, rmbPerUSD){
     const ids = SITE[siteKey].ids;
     const { total, unlocked, pending, rows, today } = computeForSite(siteKey, events, corrections);
 
@@ -143,14 +143,25 @@
 
     const tbody = document.querySelector(ids.sched);
     tbody.innerHTML = '';
+
     for (const r of rows){
       const tr = document.createElement('tr');
       const td1 = document.createElement('td');
       const td2 = document.createElement('td');
       const td3 = document.createElement('td');
       td1.textContent = labelFromYMD(r.ymd);
-      td2.textContent = fmtUSD.format(r.unlocking);
-      td3.textContent = fmtUSD.format(r.cumulative);
+
+      // For YouPin rows, show USD + RMB; for CSFloat, just USD
+      if (siteKey === 'youpin' && rmbPerUSD > 0) {
+        const rmbUnlock = r.unlocking * rmbPerUSD;
+        const rmbCum    = r.cumulative * rmbPerUSD;
+        td2.textContent = `${fmtUSD.format(r.unlocking)} (${fmtCNY.format(rmbUnlock)})`;
+        td3.textContent = `${fmtUSD.format(r.cumulative)} (${fmtCNY.format(rmbCum)})`;
+      } else {
+        td2.textContent = fmtUSD.format(r.unlocking);
+        td3.textContent = fmtUSD.format(r.cumulative);
+      }
+
       td2.className = 'num'; td3.className = 'num';
       tr.append(td1, td2, td3);
       tbody.appendChild(tr);
@@ -158,10 +169,6 @@
 
     document.querySelector(ids.asof).textContent = `as of ${labelFromYMD(today)} PT`;
   }
-
-  // ---- Load + render ----
-  let LIVE = { events: [], corrections: { csfloat:0, youpin:0 } };
-  let LAST_TODAY = todayYMD_PT();
 
   async function loadAndRender(){
     try{
@@ -171,26 +178,30 @@
 
       if (DEBUG_NET) console.log('[balance] fetched JSON:', data);
 
-      if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON shape');
+      if (!data || data.ok !== true || !Array.isArray(data.events)) throw new Error('Bad JSON');
 
       LIVE.events = data.events
         .filter(e => (e.site==='csfloat' || e.site==='youpin') && (e.type==='credit' || e.type==='debit'))
-        .map(e => ({ site:e.site, type:e.type, amount:Number(e.amount)||0, date:String(e.date) })); // "YYYY-MM-DD"
+        .map(e => ({ site:e.site, type:e.type, amount:Number(e.amount)||0, date:String(e.date) }));
 
       LIVE.corrections = {
         csfloat: Number(data.corrections?.csfloat) || 0,
         youpin:  Number(data.corrections?.youpin)  || 0
       };
+      LIVE.fx = {
+        rmbPerUSD: Number(data.fx?.rmbPerUSD) || 0
+      };
     } catch (err){
       console.error('Failed to load events:', err);
-      LIVE = { events: [], corrections: { csfloat:0, youpin:0 } };
+      LIVE = { events: [], corrections: { csfloat:0, youpin:0 }, fx:{ rmbPerUSD:0 } };
     }
 
-    renderSite('csfloat', LIVE.events, LIVE.corrections);
-    renderSite('youpin',  LIVE.events, LIVE.corrections);
+    const rate = LIVE.fx.rmbPerUSD || 7.0; // sensible fallback if cell empty
+    renderSite('csfloat', LIVE.events, LIVE.corrections, rate);
+    renderSite('youpin',  LIVE.events, LIVE.corrections, rate);
   }
 
-  // Auto-rollover at PT midnight (checks each minute)
+  // PT midnight rollover watcher
   function startMidnightWatcher(){
     setInterval(() => {
       const nowYMD = todayYMD_PT();
@@ -208,6 +219,6 @@
     startMidnightWatcher();
   });
 
-  // Manual refresh via console if needed
+  // Manual refresh via console
   window.COAHBalance = { refresh: loadAndRender };
 })();
