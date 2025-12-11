@@ -15,7 +15,7 @@
       { "id": "9",  "title": "P90 | Death by Kitty 1x LDLC K14 Holo",  "x": 44.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
       { "id": "10", "title": "MAC-10 | Heat 4x Fnatic K14 Paper", "x": 44.9, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/mac10.png" },
 
-      { "id": "11", "title": "AK-47 | Wild Lotus 4x LGB K14 Holo ", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/untitled2.png" },
+      { "id": "11", "title": "AK-47 | Wild Lotus 4x LGB K14 Holo ", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/ak47.png" },
       { "id": "12", "title": "SG 553 | Bulldozer 4x Navi K14 Paper", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/sg.png" },
       { "id": "13", "title": "Galil AR | Aqua Terrace", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil.png" },
       { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
@@ -43,6 +43,7 @@
     ]
   }
 }
+
 
 
 
