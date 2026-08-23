@@ -41,7 +41,7 @@
       { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/famas.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
 
-      { "id": "16", "title": "Knife Glove Combo", "x": 7.5, "y": 25, "w": 4.5, "h": 20, "image": "assets/weapons/awp.png" }
+      { "id": "16", "title": "Knife Glove Combo", "x": 7, "y": 15, "w": 4.5, "h": 20, "image": "assets/weapons/awp.png" }
     ]
   }
 }
