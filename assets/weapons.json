@@ -39,7 +39,7 @@
       { "id": "12", "title": "M4A1-S | Welcome to the Jungle 4x Mystik K14 Paper", "x": 56.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/m4a1-s2.png" },
       { "id": "13", "title": "Aug | Wings 1x Dignitas K14 Holo ", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/aug.png" },
       { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/famas.png" },
-      { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
+      { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
 
       { "id": "16", "title": "Knife Glove Combo", "x": 10, "y": 45, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ]
