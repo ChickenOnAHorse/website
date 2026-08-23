@@ -19,7 +19,9 @@
       { "id": "12", "title": "SG 553 | Bulldozer 4x Navi K14 Paper", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/sg.png" },
       { "id": "13", "title": "Galil AR | Aqua Terrace", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil.png" },
       { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
-      { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
+      { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
+
+      { "id": "16", "title": "Knife Glove Combo", "x": 80, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/awp.png" }
       
     ],
     "blue": [
