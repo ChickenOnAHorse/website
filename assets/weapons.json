@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "debug": false,
+  "debug": true,
   "hotspots": {
     "gold": [
       { "id": "1",  "title": "Glock-18 | Death Rattle 1x NiP K14 Holo",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/glock.png" },
@@ -40,6 +40,8 @@
       { "id": "13", "title": "Aug | Wings 1x Dignitas K14 Holo ", "x": 56.9, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/aug.png" },
       { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/famas.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
+
+      { "id": "16", "title": "Knife Glove Combo", "x": 10, "y": 45, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" }
     ]
   }
 }
