@@ -17,11 +17,11 @@
 
       { "id": "11", "title": "AK-47 | Wild Lotus 4x LGB K14 Holo ", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/ak47.png" },
       { "id": "12", "title": "SG 553 | Bulldozer 4x Navi K14 Paper", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/sg.png" },
-      { "id": "13", "title": "Galil AR | Blue Titanium 1x Mouse K14 Holo", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil.png" },
+      { "id": "13", "title": "Galil AR | Blue Titanium 1x Mouse K14 Holo", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil2.png" },
       { "id": "14", "title": "G3SG1 | Azure Zebra 5x Titan K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/tauto.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
 
-      { "id": "16", "title": "Knife Glove Combo", "x": 73, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/awp.png" }
+      { "id": "16", "title": "Knife Glove Combo", "x": 73, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/KnifeGloveT.png" }
       
     ],
     "blue": [
@@ -43,7 +43,7 @@
       { "id": "14", "title": "FAMAS | Doomkitty 1x Titan K14 Holo", "x": 56.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/famas.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.9, "y": 79.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
 
-      { "id": "16", "title": "Knife Glove Combo", "x": 7.25, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/awp.png" }
+      { "id": "16", "title": "Knife Glove Combo", "x": 7.25, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/KnifeGloveCT.png" }
     ]
   }
 }
