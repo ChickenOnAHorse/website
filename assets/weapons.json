@@ -6,19 +6,19 @@
       { "id": "1",  "title": "Glock-18 | Death Rattle 1x NiP K14 Holo",  "x": 33.3, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/glock.png" },
       { "id": "2",  "title": "Dual Berettas | Panther 4x Complexity K14 Paper",  "x": 33.3, "y": 28.0, "w": 10.1, "h": 16.1, "image": "assets/weapons/dualies.png" },
       { "id": "3",  "title": "P250 | Steel Disruption 4x Complexity K14 Holo",  "x": 33.3, "y": 45.6, "w": 10.1, "h": 16.1, "image": "assets/weapons/p250.png" },
-      { "id": "4",  "title": "Tec-9 | Terrace 4x VP Atlanta Holo ",  "x": 33.3, "y": 62.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/tec9.png" },
+      { "id": "4",  "title": "CZ75-Auto | Nitro 1x Reason K14 Holo",  "x": 33.3, "y": 62.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/cz.png" },
       { "id": "5",  "title": "Desert Eagle | Blaze 1x HR K14 Holo",  "x": 33.3, "y": 80.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/deagle.png" },
 
-      { "id": "6",  "title": "Nova | Graphite 4x HR K14 Paper",  "x": 44.9, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova.png" },
+      { "id": "6",  "title": "Nova | Candy Apple 4X LGB K14 Paper",  "x": 44.9, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova2.png" },
       { "id": "7",  "title": "UMP-45 | Caramel 4x VP K14 Paper",  "x": 44.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/ump.png" },
-      { "id": "8",  "title": "MP7 | Anodized Navy 4x LDLC K14 Paper",  "x": 44.9, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/mp7.png" },
-      { "id": "9",  "title": "P90 | Death by Kitty 1x LDLC K14 Holo",  "x": 44.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
+      { "id": "8",  "title": "MP7 | Bloodsport 4x Crimson Frog Foils",  "x": 44.9, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/mp72.png" },
+      { "id": "9",  "title": "P90 | Death by Kitty 1x Dig K14 Holo",  "x": 44.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
       { "id": "10", "title": "MAC-10 | Heat 4x Fnatic K14 Paper", "x": 44.9, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/mac10.png" },
 
       { "id": "11", "title": "AK-47 | Wild Lotus 4x LGB K14 Holo ", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/ak47.png" },
       { "id": "12", "title": "SG 553 | Bulldozer 4x Navi K14 Paper", "x": 56.3, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/sg.png" },
-      { "id": "13", "title": "Galil AR | Aqua Terrace", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil.png" },
-      { "id": "14", "title": "SSG 08 | Mayan Dreams 4x Reason K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/ssg.png" },
+      { "id": "13", "title": "Galil AR | Blue Titanium 1x Mouse K14 Holo", "x": 56.3, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/galil.png" },
+      { "id": "14", "title": "G3SG1 | Azure Zebra 5x Titan K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/tauto.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
 
       { "id": "16", "title": "Knife Glove Combo", "x": 65, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/awp.png" }
@@ -31,7 +31,7 @@
       { "id": "4",  "title": "CZ75-Auto | Nitro 1x Reason K14 Holo",  "x": 33.9, "y": 62.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/cz.png" },
       { "id": "5",  "title": "Desert Eagle | Blaze 1x HR K14 Holo",  "x": 33.9, "y": 79.9, "w": 10.1, "h": 16.1, "image": "assets/weapons/deagle.png" },
 
-      { "id": "6",  "title": "Nova | Candy Apple 4X LGB K14 Paper ",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova2.png" },
+      { "id": "6",  "title": "Nova | Candy Apple 4X LGB K14 Paper",  "x": 45.2, "y": 7.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova2.png" },
       { "id": "7",  "title": "UMP-45 | Caramel 4x VP K14 Paper",  "x": 45.2, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/ump.png" },
       { "id": "8",  "title": "MAG-7 | Foresight 4x Mystik K14 Paper",  "x": 45.2, "y": 43.1, "w": 10.1, "h": 16.1, "image": "assets/weapons/mag7.png" },
       { "id": "9",  "title": "MP9 | Airlock 4x Dignitas K14 Paper",  "x": 45.2, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/mp9.png" },
