@@ -2,7 +2,7 @@
 
 // -------------------- toggles --------------------
 const API_URL = '/.netlify/functions/fetch-items';
-const DIAG = true;          // logs counts to console
+const DIAG = false;         // set true temporarily for console diagnostics
 const SAFE_MODE_IF_ZERO = true; // if strict filter yields 0, fall back to "Include=TRUE" only
 
 // -------------------- time helpers (LA midnight +8d) --------------------
@@ -115,7 +115,7 @@ function normalizeItem(raw){
 }
 
 // -------------------- card --------------------
-function createCard(item){
+function createCard(item, index = 0){
   const cond=conditionOf(item.float);
   const countdown=countdownFromPurchase(item.purchaseDate);
   const locked=!!countdown;
@@ -130,7 +130,13 @@ function createCard(item){
   card.appendChild(row);
 
   const imgWrap=document.createElement('div'); imgWrap.className='image-container';
-  const img=document.createElement('img'); img.loading='lazy'; img.decoding='async'; img.alt=item.name||'-'; img.src=item.image||'assets/chicken.png';
+  const img=document.createElement('img');
+  img.loading=index < 4 ? 'eager' : 'lazy';
+  img.decoding='async';
+  if(index < 4) img.fetchPriority='high';
+  img.alt=item.name||'-';
+  img.src=item.image||'assets/chicken.png';
+  img.addEventListener('error',()=>{ if(!img.src.endsWith('/assets/chicken.png')) img.src='assets/chicken.png'; },{once:true});
   const mag=document.createElement('button'); mag.className='magnify-btn'; mag.type='button'; mag.textContent='🔍'; mag.addEventListener('click',e=>{ e.stopPropagation(); showModalImage(img.src); });
   imgWrap.appendChild(img); imgWrap.appendChild(mag); card.appendChild(imgWrap);
 
@@ -223,8 +229,11 @@ function renderCards(rawData, filters){
     if(filters.sort==='Newest') list.reverse();
   }
 
-  // render
-  for(const it of list) grid.appendChild(createCard(it));
+  // render in one DOM operation to reduce layout/repaint work
+  const fragment=document.createDocumentFragment();
+  list.forEach((it,index)=>fragment.appendChild(createCard(it,index)));
+  grid.replaceChildren(fragment);
+  grid.setAttribute('aria-busy','false');
 
   // count
   const countEl=document.getElementById('item-count');
@@ -250,9 +259,38 @@ function renderCards(rawData, filters){
   }
 }
 
-// -------------------- fetch --------------------
+// -------------------- loading + fetch --------------------
+function setControlsDisabled(disabled){
+  document.querySelectorAll('#category-filter, #sort-filter, #unlocked-filter, #search-bar')
+    .forEach(el=>{ el.disabled=disabled; });
+}
+
+function showLoadingState(){
+  const grid=document.getElementById('cards-container');
+  const count=document.getElementById('item-count');
+  if(count) count.textContent='Loading inventory…';
+  if(!grid) return;
+
+  grid.setAttribute('aria-busy','true');
+  const fragment=document.createDocumentFragment();
+  for(let i=0;i<8;i++){
+    const card=document.createElement('div');
+    card.className='card skeleton-card';
+    card.setAttribute('aria-hidden','true');
+    card.innerHTML=`
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-row"></div>
+      <div class="skeleton skeleton-image"></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line skeleton-line-short"></div>`;
+    fragment.appendChild(card);
+  }
+  grid.replaceChildren(fragment);
+}
+
 async function fetchItems(){
-  const res=await fetch(API_URL,{cache:'no-store'});
+  // Allow the browser and Netlify edge cache to do their jobs.
+  const res=await fetch(API_URL,{cache:'default'});
   if(!res.ok){
     console.error('[coah] fetch-items failed', res.status, await res.text());
     throw new Error('Could not load items');
@@ -267,8 +305,38 @@ async function fetchItems(){
   return [];
 }
 
+function debounce(fn, delay=120){
+  let timer;
+  return (...args)=>{
+    clearTimeout(timer);
+    timer=setTimeout(()=>fn(...args),delay);
+  };
+}
+
+function initPageChrome(){
+  const year=document.getElementById('year');
+  if(year) year.textContent=new Date().getFullYear();
+
+  const toggle=document.getElementById('theme-toggle');
+  if(!toggle) return;
+  const saved=localStorage.getItem('coah-theme');
+  if(saved==='light' || saved==='dark') document.documentElement.dataset.theme=saved;
+  const syncIcon=()=>{ toggle.textContent=document.documentElement.dataset.theme==='light'?'☀':'☾'; };
+  syncIcon();
+  toggle.addEventListener('click',()=>{
+    const next=document.documentElement.dataset.theme==='light'?'dark':'light';
+    document.documentElement.dataset.theme=next;
+    localStorage.setItem('coah-theme',next);
+    syncIcon();
+  });
+}
+
 // -------------------- init --------------------
 (async function init(){
+  initPageChrome();
+  showLoadingState();
+  setControlsDisabled(true);
+
   try{
     const data=await fetchItems();
 
@@ -282,14 +350,19 @@ async function fetchItems(){
     categorySelect?.addEventListener('change',()=>{ filters.category=categorySelect.value; renderCards(data,filters); });
     sortSelect?.addEventListener('change', ()=>{ filters.sort=sortSelect.value; renderCards(data,filters); });
     unlockedCheckbox?.addEventListener('change', ()=>{ filters.onlyUnlocked=unlockedCheckbox.checked; renderCards(data,filters); });
-    searchInput?.addEventListener('input', ()=>{ filters.search=searchInput.value; renderCards(data,filters); });
+    searchInput?.addEventListener('input', debounce(()=>{ filters.search=searchInput.value; renderCards(data,filters); }));
 
+    setControlsDisabled(false);
     renderCards(data,filters);
   }catch(err){
     console.error('[coah] init error:', err);
     const grid=document.getElementById('cards-container');
-    if(grid) grid.innerHTML=`<div class="error">Could not load items. Please try again later.</div>`;
+    if(grid){
+      grid.setAttribute('aria-busy','false');
+      grid.innerHTML=`<div class="error" role="alert">Could not load inventory. Please refresh the page or try again shortly.</div>`;
+    }
     const count=document.getElementById('item-count');
-    if(count) count.textContent='Showing 0 items';
+    if(count) count.textContent='Inventory unavailable';
+    setControlsDisabled(false);
   }
 })();

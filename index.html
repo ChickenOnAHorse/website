@@ -63,11 +63,11 @@
       </div>
 
       <!-- Item count -->
-      <div id="item-count" class="item-count">Showing 0 items</div>
+      <div id="item-count" class="item-count" role="status" aria-live="polite">Loading inventory…</div>
     </section>
 
     <!-- Cards grid -->
-    <section id="cards-container" class="grid" aria-live="polite"></section>
+    <section id="cards-container" class="grid" aria-live="polite" aria-busy="true"></section>
   </main>
 
   <footer class="site-footer">
