@@ -12,7 +12,7 @@
       { "id": "6",  "title": "Nova | Candy Apple 4X LGB K14 Paper",  "x": 44.9, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/nova2.png" },
       { "id": "7",  "title": "UMP-45 | Caramel 4x VP K14 Paper",  "x": 44.9, "y": 25.4, "w": 10.1, "h": 16.1, "image": "assets/weapons/ump.png" },
       { "id": "8",  "title": "MP7 | Bloodsport 4x Crimson Frog Foils",  "x": 44.9, "y": 43.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/mp72.png" },
-      { "id": "9",  "title": "P90 | Death by Kitty 1x Dig K14 Holo",  "x": 44.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p90.png" },
+      { "id": "9",  "title": "P90 | Death by Kitty 1x Dig K14 Holo",  "x": 44.9, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/p902.png" },
       { "id": "10", "title": "MAC-10 | Heat 4x Fnatic K14 Paper", "x": 44.9, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/mac10.png" },
 
       { "id": "11", "title": "AK-47 | Wild Lotus 4x LGB K14 Holo ", "x": 56.3, "y": 7.5, "w": 10.1, "h": 16.1, "image": "assets/weapons/ak47.png" },
@@ -21,7 +21,7 @@
       { "id": "14", "title": "G3SG1 | Azure Zebra 5x Titan K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/tauto.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
 
-      { "id": "16", "title": "Knife Glove Combo", "x": 73, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/KnifeGloveT.png" }
+      { "id": "16", "title": "Knife Glove Combo", "x": 85, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/KnifeGloveT.png" }
       
     ],
     "blue": [
