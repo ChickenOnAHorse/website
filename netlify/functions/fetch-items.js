@@ -83,7 +83,13 @@ exports.handler = async function (event) {
     // Return to client
     return {
       statusCode: 200,
-      headers: { "content-type": "application/json", "cache-control": "no-store" },
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        // Keep browser caching short, but let Netlify serve a recent cached response
+        // immediately while it refreshes from Apps Script in the background.
+        "cache-control": "public, max-age=30, stale-while-revalidate=60",
+        "Netlify-CDN-Cache-Control": "public, durable, max-age=60, stale-while-revalidate=300"
+      },
       body: JSON.stringify(visible)
     };
   } catch (e) {
