@@ -21,7 +21,7 @@
       { "id": "14", "title": "G3SG1 | Azure Zebra 5x Titan K14 Paper", "x": 56.3, "y": 61.3, "w": 10.1, "h": 16.1, "image": "assets/weapons/tauto.png" },
       { "id": "15", "title": "AWP | Dragon Lore 1x Dignitas K14 Holo", "x": 56.3, "y": 80.2, "w": 10.1, "h": 16.1, "image": "assets/weapons/awp.png" },
 
-      { "id": "16", "title": "Knife Glove Combo", "x": 65, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/awp.png" }
+      { "id": "16", "title": "Knife Glove Combo", "x": 73, "y": 17.8, "w": 4.25, "h": 24, "image": "assets/weapons/awp.png" }
       
     ],
     "blue": [
